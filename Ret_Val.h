@@ -11,6 +11,9 @@
 
 #define EVERYTHING_OK 					         0 // No error.
 
+#define GET_TOKEN_OK                    0  // Get_token succesfull
+#define GET_TOKEN_ERROR                 1  // Get_token error
+
 #define LEXICAL_ERROR		                 1 // Lexical structure error.
 #define SYNTAX_ERROR					           2 // Syntax error.
 #define SEMANTIC_ERROR_UNDEFINED_VAR		 3 // Semantic error - undefined variable.
