@@ -50,3 +50,13 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+#Compiled things
+
+dstr-test
+fsm-test
+hash-test
+
+#Examples folder
+examples/*
+
