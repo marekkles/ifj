@@ -1,5 +1,5 @@
 #include "symtable.h"
-
+//fdsg
 
 SymTableItem_t *SymTableAllocateItem(SymTableSymbolType_t type, char *key)
 {
