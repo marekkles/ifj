@@ -57,6 +57,8 @@ dstr-test
 fsm-test
 hash-test
 
+fsm.svg
+
 #Examples folder
 examples/*
 
