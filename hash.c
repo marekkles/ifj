@@ -1,6 +1,6 @@
 #include "hash.h"
 
-unsigned int BKDRHash(unsigned char *str)
+unsigned int BKDRHash(const char *str)
 {
     unsigned int hash = 0, seed = 131;
     char c;
@@ -10,7 +10,7 @@ unsigned int BKDRHash(unsigned char *str)
     }
     return hash;
 }
-unsigned int DJBHash(unsigned char *str)
+unsigned int DJBHash(const char *str)
 {
     unsigned int hash = 5381;
     char c;
@@ -21,7 +21,7 @@ unsigned int DJBHash(unsigned char *str)
     return hash;
 }
 
-unsigned int IALHash(unsigned char *str)
+unsigned int IALHash(const char *str)
 {
     unsigned int hash = 1;
     unsigned char c;

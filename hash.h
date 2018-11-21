@@ -2,8 +2,8 @@
 
 #define HASH_H
 
-unsigned int BKDRHash(unsigned char *str);
-unsigned int DJBHash(unsigned char *str);
-unsigned int IALHash(unsigned char *str);
+unsigned int BKDRHash(const char *str);
+unsigned int DJBHash(const char *str);
+unsigned int IALHash(const char *str);
 
 #endif

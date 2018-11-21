@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=
 TARGETS=
-TESTS=fsm-test dstr-test
+TESTS=fsm-test dstr-test hash-test
 all: ${TARGETS}
 
 debug: CFLAGS += -DDEBUG
@@ -13,6 +13,8 @@ debug-test:  ${TESTS}
 
 fsm-test: fsm-test.o fsm.o token.o dstr.o debug.o
 dstr-test: dstr-test.o fsm.o dstr.o debug.o
+hash-test: hash-test.o hash.o
+
 
 test1: test1.o input.o
 
