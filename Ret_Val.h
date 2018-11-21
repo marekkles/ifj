@@ -23,7 +23,4 @@
 #define RUN_ERROR_DIVISION_ZERO          9 // Error in the run division by zero
 #define INTERNAL_ERROR           				99 // Internal error of compiler - e.g. allocation of memory etc.
 
-#endif //_RET_VAL_H
-
-
-// testing github
+#endif //_RET_VAL_H    
