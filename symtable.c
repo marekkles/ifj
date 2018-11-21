@@ -1,5 +1,5 @@
 #include "symtable.h"
-//fdsg
+//halooooo
 
 SymTableItem_t *SymTableAllocateItem(SymTableSymbolType_t type, char *key)
 {
@@ -27,7 +27,7 @@ void SymTableItemFree(SymTableItem_t *Item)
     free(Item);
 }
 void SymTableItemCopy(SymTableItem_t *Destination, SymTableItem_t *Source);
-
+//commit
 
 void SymTableInit(SymTable_t **SymTable, size_t size, unsigned int (*hashFunction)(const char *))
 {
