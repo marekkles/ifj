@@ -1,11 +1,18 @@
-<program> -> def id <parameters> EOL <statement>
+<program> -> def id <parameters> EOL <statement> EOL end
 
 <parameters> -> ( <argument> <argument_other> )
 <parameters> -> <argument> <argument_other>
-<parameters> -> E //Empty string
+<parameters> -> ε
 
 <argument> -> id
 <argument_other> -> , id
 
 <program> -> <statement>
 <program> -> <program>
+
+<statement> -> id = id <parameters> EOL <statement>
+<statement> -> id = <expression> EOL <statement>
+<statement> -> if <expression> then EOL <statement> end EOL <statement>
+<statement> -> while <expression> do EOL <statement> end EOL <statement>
+<statement> -> ε
+
