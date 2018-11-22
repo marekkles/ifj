@@ -1,0 +1,11 @@
+<program> -> def id <parameters> EOL <statement>
+
+<parameters> -> ( <argument> <argument_other> )
+<parameters> -> <argument> <argument_other>
+<parameters> -> E //Empty string
+
+<argument> -> id
+<argument_other> -> , id
+
+<program> -> <statement>
+<program> -> <program>
