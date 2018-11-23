@@ -1,11 +1,49 @@
-#include "main.h"
+#include <stdio.h>
+#include "token.h"
+#include "debug.h"
+#include "dstr.h"
+#include "fsm.h"
+#include "return.h"
 
 int main(int argc, char *argv[]){
 
-FILE =    ;
-Token_t =    ;
+    FILE * input = stdin;
+    DStr_t *dynamic_string;
+    Token_t token;
+    TokenType_t last_token_type;
+    int return_value = 0;
 
-int GetToken();
+    fputs(".IFJcode18", stdout);
 
-return 0;    
+    DStrInit(&dynamic_string, 100);
+
+    if(dynamic_string == NULL)
+        return INTERNAL_ERROR;
+
+    while(1)
+    {
+        last_token_type = GetToken(input, &dynamic_string, &token);
+
+        if(last_token_type != -1 && last_token_type != -2)
+            DebugFPrintToken(stdout, &token, dynamic_string);
+        
+        if(last_token_type == T_EOF)
+        {
+            break;
+        }
+        else if(last_token_type == -1)
+        {
+            return_value = LEXICAL_ERROR;
+            break;
+        }
+        else if(last_token_type == -2)
+        {
+            return_value = INTERNAL_ERROR;
+            break;
+        }
+    }
+
+    DStrFree(&dynamic_string);
+
+    return return_value;    
 }
