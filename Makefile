@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=
-TARGETS=
+TARGETS=main
 TESTS=fsm-test dstr-test hash-test
 all: ${TARGETS}
 
