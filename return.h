@@ -4,16 +4,26 @@
  */
 
 
-#ifndef _RET_VAL_H
-#define _RET_VAL_H
+#ifndef _RETURN_H
+#define _RETURN_H
 
 // Return Values
 
+
+enum {
+    GET_TOKEN_OK,
+    GET_TOKEN_LEX_ERR,
+    GET_TOKEN_INT_ERR
+};
+
+enum {
+    PARSE_OK,
+    PARSE_SYN_ERR,
+    PARSE_LEX_ERR,
+    PARSE_INT_ERR
+};
+
 #define EVERYTHING_OK 					         0 // No error.
-
-#define GET_TOKEN_OK                    0  // Get_token succesfull
-#define GET_TOKEN_ERROR                 1  // Get_token error
-
 #define LEXICAL_ERROR		                 1 // Lexical structure error.
 #define SYNTAX_ERROR					           2 // Syntax error.
 #define SEMANTIC_ERROR_UNDEFINED_VAR		 3 // Semantic error - undefined variable.
