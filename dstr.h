@@ -5,7 +5,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "debug.h"
 
 #ifndef DSTR_H
 

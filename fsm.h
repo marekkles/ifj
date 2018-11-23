@@ -7,14 +7,12 @@
 #include <ctype.h>
 #include <limits.h>
 
-#include "dstr.h"
-#include "debug.h"
 #ifndef FSM_H
 
 #define FSM_H
 
 extern int CurrentlyReading[2];
 
-int GetToken(FILE * Input, DStr_t **DStr);
+int GetToken(FILE * Input, DStr_t **DStr, Token_t *token);
 
 #endif
