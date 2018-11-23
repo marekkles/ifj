@@ -10,7 +10,8 @@ typedef enum {
     T_STRING,
     T_KEYWORD,
     T_OPERATION,
-    T_EOL
+    T_EOL,
+    T_EOF
 } TokenType_t;
 
 typedef enum {
@@ -41,45 +42,6 @@ typedef enum {
     TO_RBRACKET,
     TO_COMMA
 } TokenOperationType_t;
-
-const char * TokenTypesNames[] = {
-    "T_IDENTIFIER",
-    "T_INTEGER",
-    "T_DOUBLE",
-    "T_STRING",
-    "T_KEYWORD",
-    "T_OPERATION",
-    "T_EOL"
-};
-
-const char * TokenKeywordTypesNames[] = {
-    "TK_DEF",
-    "TK_DO",
-    "TK_ELSE",
-    "TK_END",
-    "TK_IF",
-    "TK_NOT",
-    "TK_NIL",
-    "TK_THEN",
-    "TK_WHILE"
-};
-
-const char * TokenOperationTypesNames[] = {
-    "TO_LESSER_THAN", 
-    "TO_GREATER_THAN", 
-    "TO_ASSIGNMENT", 
-    "TO_EQUAL_TO", 
-    "TO_NOT_EQUAL_TO", 
-    "TO_MULTIPLY", 
-    "TO_DIVIDE", 
-    "TO_ADD", 
-    "TO_SUBTRACT", 
-    "TO_GREATER_EQUAL_THAN", 
-    "TO_LESSER_EQUAL_THAN",
-    "TO_LBRACKET",
-    "TO_RBRACKET",
-    "TO_COMMA"
-};
 
 typedef struct {
     TokenType_t type;

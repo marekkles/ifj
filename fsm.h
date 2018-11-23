@@ -4,8 +4,14 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 #include <limits.h>
+#include "dstr.h"
+#include "token.h"
+#include "debug.h"
+
 
 #ifndef FSM_H
 

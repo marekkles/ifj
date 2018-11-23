@@ -1,8 +1,4 @@
 #include "fsm.h"
-#include "dstr.h"
-#include "token.h"
-#include "debug.h"
-
 //int CurrentlyReading[2] = {0, 1};
 
 
@@ -60,6 +56,7 @@ typedef enum {
     S_LBRACKET, 
     S_RBRACKET,
     S_COMMA,
+    S_EOF,
     //Error state
     S_ERROR
 } FSMState_t;
@@ -91,7 +88,8 @@ static const FSMState_t final_states[] = {
     S_LESSER_EQUAL_THAN,
     S_LBRACKET,
     S_RBRACKET,
-    S_COMMA
+    S_COMMA,
+    S_EOF
 };
 static const char *states_names[] = {
     //Initial state
@@ -147,6 +145,7 @@ static const char *states_names[] = {
     "S_LBRACKET",
     "S_RBRACKET",
     "S_COMMA",
+    "S_EOF",
     //Error state
     "S_ERROR"
 };
@@ -213,7 +212,7 @@ static int BinStringToInt(const char *string)
 static int StringToInt(const char *string)
 {
     char *endptr;
-    long int result = strtol(string+2, &endptr, 10);
+    long int result = strtol(string, &endptr, 10);
     if(*endptr != '\0' || result > INT_MAX)
         return -1;
     return result;
@@ -226,8 +225,8 @@ static int StringToInt(const char *string)
 static double StringToDouble(const char *string)
 {
     char *endptr;
-    double result = strtod(string+2, &endptr);
-    if(*endptr != '\0' || result > INT_MAX)
+    double result = strtod(string, &endptr);
+    if(*endptr != '\0')
         return -1;
     return result;
 }
@@ -371,6 +370,16 @@ static int PocessToToken(Token_t *token, DStr_t *DStr, FSMState_t state)
             token->operationType = TO_COMMA;
         return T_OPERATION;
     }
+    else if(state == S_EOL)
+    {
+        token->type = T_EOL;
+        return T_EOL;
+    }
+    else if(state == S_EOF)
+    {
+        token->type = T_EOF;
+        return T_EOF;
+    }
     /*
     S_EOL,
     S_ERROR,
@@ -406,13 +415,14 @@ int GetToken(FILE * Input, DStr_t **DStr, Token_t *token)
 
     DStrClear(*DStr);
     //DebugFPuts("Starting fsm...\n", stdout);
-    while((read_char = (no_read)?read_char:fgetc(Input)) != -1 && !stop)
+    while(!stop)
     {
         //DebugFPrintf(stdout, "Reading char: %c\n", (char)read_char);
         //DebugFPrintf(stdout, "State: %s -> ", states_names[state]);
         //internal allocation error
         //if(DStrAddChar(DStr, read_char) == -1)
         //    return -1;
+        read_char = (no_read)?read_char:fgetc(Input);
         DStrAddChar(DStr, read_char);
         no_read = 0;
         switch(state)
@@ -453,6 +463,11 @@ int GetToken(FILE * Input, DStr_t **DStr, Token_t *token)
                 {
                     DStrDeleteLast(*DStr);
                     state = S_INITIAL;
+                }
+                else if(read_char == -1)
+                {
+                    state = S_EOF;
+                    stop = 1;
                 }
                 else if(read_char >= 'a' && read_char <= 'z')
                 {
@@ -1005,7 +1020,7 @@ int GetToken(FILE * Input, DStr_t **DStr, Token_t *token)
        DStrDeleteLast(*DStr);
     }
 
-    DebugFPrintf(stdout," <- [%s] \n", states_names[state]);
+    //DebugFPrintf(stdout," <- [%s] \n", states_names[state]);
     //DebugFPrintf(stdout,"Token: %s\n", DStrStr(*DStr));
     /*int idx;
 
@@ -1013,13 +1028,9 @@ int GetToken(FILE * Input, DStr_t **DStr, Token_t *token)
     {
         DebugFPrintf(stdout, "%s \e[1m\e[34m[%s]\e[0m", DStrStr(*DStr), final_states_names[idx]);
     }*/
-    if(read_char == -1)
-    {
-        return -1;
-    }
     //DebugFPuts("--------------- Get Token End -------------\n", stdout);
     if(state == S_ERROR)
         return -1;
-    return PocessToToken(token, DStr, state);
+    return PocessToToken(token, *DStr, state);
     //return DStrStr(*DStr)[DStrLen(*DStr)-1];
 }

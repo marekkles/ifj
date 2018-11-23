@@ -1,6 +1,7 @@
 #include "fsm.h"
 #include "dstr.h"
 #include "debug.h"
+#include "token.h"
 
 int main(int argc, char const *argv[])
 {
@@ -19,14 +20,17 @@ int main(int argc, char const *argv[])
     DebugFPuts("--------------- File opened ---------------\n", output);
 
     DStr_t *DStr;
-    
+    Token_t Token;
     DStrInit(&DStr, 50);
     if(DStr != NULL)
     {
         DebugFPuts("-------- Dynamic string Initialized -------\n", output);
-        while(GetToken(input, &DStr) != -1){
-            fputs(DStrStr(DStr) ,stdout);
-            fputs("\n", stdout);
+        TokenType_t lastType; 
+        while((lastType = GetToken(input, &DStr, &Token)) != -1)
+        {
+            DebugFPrintToken(stdout, &Token, DStr);
+            if(lastType == T_EOF)
+                break;
         }
         DStrFree(&DStr);
         DebugFPuts("----------- Dynamic string freed ----------\n", output);

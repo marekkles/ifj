@@ -11,8 +11,8 @@ test: ${TESTS}
 debug-test: CFLAGS += -DDEBUG
 debug-test:  ${TESTS}
 
-fsm-test: fsm-test.o fsm.o token.o dstr.o debug.o
-dstr-test: dstr-test.o fsm.o dstr.o debug.o
+fsm-test: fsm-test.o fsm.o dstr.o debug.o
+dstr-test: dstr-test.o dstr.o debug.o
 hash-test: hash-test.o hash.o
 
 
