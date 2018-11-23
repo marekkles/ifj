@@ -404,7 +404,12 @@ static int IsFinalState(FSMState_t state)
 }
 /**
  * Function uses fsm to find out if scanned string from
- * input file is part of IFJ2018. 
+ * input file is part of IFJ2018. If lexical error occures
+ * it will return -1 if internal error occures -2 else 0
+ * @param Input file to read from
+ * @param DStr Pointer to dynamic string function shou use to
+ * store read tokens
+ * @param token pointer to token to store info about tokens
 */ 
 int GetToken(FILE * Input, DStr_t **DStr, Token_t *token)
 {
@@ -423,7 +428,10 @@ int GetToken(FILE * Input, DStr_t **DStr, Token_t *token)
         //if(DStrAddChar(DStr, read_char) == -1)
         //    return -1;
         read_char = (no_read)?read_char:fgetc(Input);
-        DStrAddChar(DStr, read_char);
+        if(DStrAddChar(DStr, read_char) == 0)
+        {
+            return -2;
+        }
         no_read = 0;
         switch(state)
         {
@@ -853,7 +861,7 @@ int GetToken(FILE * Input, DStr_t **DStr, Token_t *token)
             }
             case S_STR_ESC:
             {
-                if(read_char == '"' || read_char == 'n' || read_char == 's' || read_char == '\\')
+                if(read_char == '"' || read_char == 'n' || read_char == 's' || read_char == 't' || read_char == '\\')
                 {
                     state = S_STR_READ;
                 }
