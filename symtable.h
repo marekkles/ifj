@@ -11,24 +11,18 @@ typedef enum {S_FUNCTION, S_INTEGER, S_DOUBLE} SymTableSymbolType_t;
 typedef struct {
     char *key;
     SymTableSymbolType_t type;
-    union {
-        double DValue;
-        int IValue;
-        SymTable_t *STable;
-    };
     SymTableItem_t *NextPtr;  
 } SymTableItem_t;
 
 
 typedef struct {
     size_t size;
-    unsigned int (*hashFunction)(const char *);
     SymTableItem_t *table[];
 } SymTable_t;
 
-SymTableItem_t *SymTableAllocateItem(SymTableSymbolType_t type, char *key);
+/*SymTableItem_t *SymTableAllocateItem(SymTableSymbolType_t type, char *key);
 void SymTableItemFree(SymTableItem_t *Item);
-void SymTableItemCopy(SymTableItem_t *Destination, SymTableItem_t *Source);
+void SymTableItemCopy(SymTableItem_t *Destination, SymTableItem_t *Source); */
 
 
 void SymTableInit(SymTable_t **SymTable, size_t size, unsigned int (*hashFunction)(const char *));

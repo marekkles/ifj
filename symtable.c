@@ -1,6 +1,16 @@
 #include "symtable.h"
-//halooooo
 
+unsigned int hashCode(const char *str)
+{
+    unsigned int hash = 5381;
+    char c;
+    while(c = *str++)
+    {
+        hash = (hash << 5) + hash + c;
+    }
+    return hash;
+}
+/*
 SymTableItem_t *SymTableAllocateItem(SymTableSymbolType_t type, char *key)
 {
     SymTableItem_t *Item;
@@ -28,8 +38,8 @@ void SymTableItemFree(SymTableItem_t *Item)
 }
 void SymTableItemCopy(SymTableItem_t *Destination, SymTableItem_t *Source);
 //commit
-
-void SymTableInit(SymTable_t **SymTable, size_t size, unsigned int (*hashFunction)(const char *))
+*/
+void SymTableInit(SymTable_t **SymTable, size_t size)
 {
     if((*SymTable = malloc(sizeof(SymTable_t) + sizeof(SymTableItem_t *)*size)) == NULL)
     {
@@ -37,15 +47,15 @@ void SymTableInit(SymTable_t **SymTable, size_t size, unsigned int (*hashFunctio
         return;
     }
     (*SymTable)->size = size;
-    (*SymTable)->hashFunction = hashFunction; 
     for(unsigned int i = 0; i < size; i++)
         (*SymTable)->table[i] = NULL;
 }
+
 unsigned int SymTableIndex(SymTable_t *SymTable, char *key)
 {
-    unsigned int (*hashFunction)(const char *) = SymTable->hashFunction;
-    return hashFunction(key) % SymTable->size;
+    return hashCode(key) % SymTable->size;
 }
+
 SymTableItem_t *SymTableFindItem(SymTable_t *SymTable, char *key)
 {
     unsigned int Index = SymTableIndex(SymTable, key);
@@ -59,6 +69,7 @@ SymTableItem_t *SymTableFindItem(SymTable_t *SymTable, char *key)
     }
     return CurrentItem;
 }
+
 SymTableItem_t *SymTableAddItem(SymTable_t *SymTable, SymTableItem_t *Item)
 {
     SymTableItem_t *foundItem =SymTableFindItem(SymTable, Item->key);
@@ -71,6 +82,7 @@ SymTableItem_t *SymTableAddItem(SymTable_t *SymTable, SymTableItem_t *Item)
 
     }
 }
+
 void SymTableRemoveItem(SymTable_t *SymTable, char *key)
 {
     unsigned int Index = SymTableIndex(SymTable, key);
