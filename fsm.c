@@ -1,4 +1,7 @@
 #include "fsm.h"
+#include "dstr.h"
+#include "token.h"
+#include "debug.h"
 
 //int CurrentlyReading[2] = {0, 1};
 
@@ -237,45 +240,143 @@ static int IsKeyword(const char *potential_keyword)
 {
     if(strcmp(potential_keyword, "def") == 0)
     {
-        return K_DEF;
+        return TK_DEF;
     }
     else if(strcmp(potential_keyword, "do") == 0)
     {
-        return K_DO;
+        return TK_DO;
     }
     else if(strcmp(potential_keyword, "else") == 0)
     {
-        return K_ELSE;
+        return TK_ELSE;
     }
     else if(strcmp(potential_keyword, "end") == 0)
     {
-        return K_END;
+        return TK_END;
     }
     else if(strcmp(potential_keyword, "if") == 0)
     {
-        return K_IF;
+        return TK_IF;
     }
     else if(strcmp(potential_keyword, "not") == 0)
     {
-        return K_NOT;
+        return TK_NOT;
     }
     else if(strcmp(potential_keyword, "nil") == 0)
     {
-        return K_NIL;
+        return TK_NIL;
     }
     else if(strcmp(potential_keyword, "then") == 0)
     {
-        return K_THEN;
+        return TK_THEN;
     }
     else if(strcmp(potential_keyword, "while") == 0)
     {
-        return K_WHILE;
+        return TK_WHILE;
     }
     else
     {
         return -1;
     }
 }
+/**
+ * Function will take given FINAL state and process DStr if needed,
+ * It will return value of TokneType_t of processed token or -1 in
+ * case of error.
+ * @param token Token whre to save ew token info
+ * @param DStr input DStr
+ * @param state What was the fsm final state
+ */
+static int PocessToToken(Token_t *token, DStr_t *DStr, FSMState_t state)
+{
+    if(state == S_POTENTIAL_IDENTIFIER_READ || state == S_IDENTIFIER_READ || state == S_FUNCTION)
+    {
+        TokenKewordType_t keyword;
+        if((keyword = IsKeyword(DStrStr(DStr))) != -1 && state == S_POTENTIAL_IDENTIFIER_READ)
+        {
+            token->type = T_KEYWORD;
+            token->keywordType = keyword;
+            return T_KEYWORD;
+        }
+        else
+        {
+            token->type = T_IDENTIFIER;
+            return T_IDENTIFIER;
+        }
+    }
+    else if(state == S_INT_ZERO)
+    {
+        token->type = T_INTEGER;
+        token->intValue = 0;
+        return T_INTEGER;
+    }
+    else if(state == S_INT_READ || state == S_INT_BIN1 || state == S_INT_OCT || state == S_INT_HEX1)
+    {
+        token->type = T_INTEGER;
+        if(state == S_INT_READ && (token->intValue = StringToInt(DStrStr(DStr))) == -1)
+            return -1;
+        else if(state == S_INT_BIN1 && (token->intValue = BinStringToInt(DStrStr(DStr))) == -1)
+            return -1;
+        else if(state == S_INT_OCT && (token->intValue = OctStringToInt(DStrStr(DStr))) == -1)
+            return -1;
+        else if(state == S_INT_HEX1 && (token->intValue = HexStringToInt(DStrStr(DStr))) == -1)
+            return -1;
+        return T_INTEGER;
+    }
+    else if(state == S_DOUBLE_DEC_READ || state == S_DOUBLE_EXP_NUM)
+    {
+        token->type = T_DOUBLE;
+        if((token->doubleValue = StringToDouble(DStrStr(DStr))) == -1)
+            return -1;
+        return T_DOUBLE;
+    }
+    else if(state == S_STR_END)
+    {
+        token->type = T_STRING;
+        //Convert string to just values
+        return T_STRING;
+    }
+    else if(state == S_LESSER_THAN || state == S_GREATER_THAN || state == S_ASSIGNMENT || state == S_EQUAL_TO || state == S_NOT_EQUAL_TO || state == S_MULTIPLY || state == S_DIVIDE || state == S_ADD || state == S_SUBTRACT || state == S_GREATER_EQUAL_THAN|| state == S_LESSER_EQUAL_THAN || state == S_LBRACKET || state == S_RBRACKET || state == S_COMMA)
+    {
+        token->type = T_OPERATION;
+        if(state == S_LESSER_THAN)
+            token->operationType = TO_LESSER_THAN;
+        else if(state == S_GREATER_THAN)
+            token->operationType = TO_GREATER_THAN;
+        else if(state == S_GREATER_THAN)
+            token->operationType = TO_GREATER_THAN;
+        else if(state == S_ASSIGNMENT)
+            token->operationType = TO_ASSIGNMENT;
+        else if(state == S_EQUAL_TO)
+            token->operationType = TO_EQUAL_TO;
+        else if(state == S_NOT_EQUAL_TO)
+            token->operationType = TO_NOT_EQUAL_TO;
+        else if(state == S_MULTIPLY)
+            token->operationType = TO_MULTIPLY;
+        else if(state == S_DIVIDE)
+            token->operationType = TO_DIVIDE;
+        else if(state == S_ADD)
+            token->operationType = TO_ADD;
+        else if(state == S_SUBTRACT)
+            token->operationType = TO_SUBTRACT;
+        else if(state == S_GREATER_EQUAL_THAN)
+            token->operationType = TO_GREATER_EQUAL_THAN;
+        else if(state == S_LESSER_EQUAL_THAN)
+            token->operationType = TO_LESSER_EQUAL_THAN;
+        else if(state == S_LBRACKET)
+            token->operationType = TO_LBRACKET;
+        else if(state == S_RBRACKET)
+            token->operationType = TO_RBRACKET;
+        else if(state == S_COMMA)
+            token->operationType = TO_COMMA;
+        return T_OPERATION;
+    }
+    /*
+    S_EOL,
+    S_ERROR,
+    */
+}
+
 /**
  * If state is final state function is going to return its 
  * index in the final_states else it is going to return -1
@@ -296,7 +397,7 @@ static int IsFinalState(FSMState_t state)
  * Function uses fsm to find out if scanned string from
  * input file is part of IFJ2018. 
 */ 
-int GetToken(FILE * Input, DStr_t **DStr)
+int GetToken(FILE * Input, DStr_t **DStr, Token_t *token)
 {
     //DebugFPuts("-------------- Get Token Start ------------\n", stdout);
     FSMState_t state = S_INITIAL;
@@ -918,7 +1019,7 @@ int GetToken(FILE * Input, DStr_t **DStr)
     }
     //DebugFPuts("--------------- Get Token End -------------\n", stdout);
     if(state == S_ERROR)
-        exit(1);
-    return 1;
+        return -1;
+    return PocessToToken(token, DStr, state);
     //return DStrStr(*DStr)[DStrLen(*DStr)-1];
 }

@@ -1,0 +1,20 @@
+<program> -> def id <parameters> EOL <statement> end EOL
+
+<parameters> -> ( <argument> <argument_other> )
+<parameters> -> <argument> <argument_other>
+<parameters> -> ε
+
+<argument> -> id
+<argument_other> -> , id
+
+<program> -> <statement>
+<program> -> <program>
+
+<statement> -> id = id <parameters> EOL <statement>
+<statement> -> id <parameters> EOL <statement>
+<statement> -> id = <expression> EOL <statement>
+<statement> -> <expression> EOL <statement>
+<statement> -> if <expression> then EOL <statement> end EOL <statement>
+<statement> -> while <expression> do EOL <statement> end EOL <statement>
+<statement> -> ε
+

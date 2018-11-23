@@ -1,4 +1,5 @@
 #include "dstr.h"
+#include "debug.h"
 
 const static int min_chunk = 50;
 
