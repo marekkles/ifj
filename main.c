@@ -5,9 +5,13 @@
 #include "fsm.h"
 #include "return.h"
 
+FILE *input;
+FILE *output;
+
 int main(int argc, char *argv[]){
 
-    FILE * input = stdin;
+    input = stdin;
+    output = stdout;
     DStr_t *dynamic_string;
     Token_t token;
     TokenType_t last_token_type;
@@ -22,7 +26,7 @@ int main(int argc, char *argv[]){
 
     while(1)
     {
-        last_token_type = GetToken(input, &dynamic_string, &token);
+        last_token_type = GetToken(&dynamic_string, &token);
 
         if(last_token_type != -1 && last_token_type != -2)
             DebugFPrintToken(stdout, &token, dynamic_string);

@@ -20,6 +20,6 @@
 
 extern int CurrentlyReading[2];
 
-int GetToken(FILE * Input, DStr_t **DStr, Token_t *token);
+int GetToken(DStr_t **DStr, Token_t *token);
 
 #endif

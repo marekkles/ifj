@@ -1,6 +1,7 @@
 #include "fsm.h"
 //int CurrentlyReading[2] = {0, 1};
 
+extern FILE *input;
 
 typedef enum {
     //Initial state
@@ -424,7 +425,7 @@ static int IsFinalState(FSMState_t state)
  * store read tokens
  * @param token pointer to token to store info about tokens
 */ 
-int GetToken(FILE * Input, DStr_t **DStr, Token_t *token)
+int GetToken(DStr_t **DStr, Token_t *token)
 {
     //DebugFPuts("-------------- Get Token Start ------------\n", stdout);
     FSMState_t state = S_INITIAL;
@@ -438,7 +439,7 @@ int GetToken(FILE * Input, DStr_t **DStr, Token_t *token)
         //DebugFPrintf(stdout, "Reading char: %c\n", (char)read_char);
         //DebugFPrintf(stdout, "State: %s -> ", states_names[state]);
 
-        read_char = (no_read)?read_char:fgetc(Input);
+        read_char = (no_read)?read_char:fgetc(input);
         no_read = 0;
 
         if(DStrAddChar(DStr, read_char) == 0)
