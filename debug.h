@@ -9,6 +9,6 @@
 
 void DebugFPuts(const char * str, FILE *output);
 void DebugFPrintf(FILE *output, const char * fmt, ...);
-void DebugFPrintToken(FILE *output, const Token_t * token, DStr_t * DStr);
+void DebugFPrintToken(FILE *output, Token_t * token, DStr_t * DStr);
 
 #endif

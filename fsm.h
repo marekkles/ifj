@@ -8,6 +8,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
+#include "return.h"
 #include "dstr.h"
 #include "token.h"
 #include "debug.h"

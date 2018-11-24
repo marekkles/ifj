@@ -57,6 +57,19 @@ typedef enum {
     S_RBRACKET,
     S_COMMA,
     S_EOF,
+    //Block Comment
+    S_BLOCK_COMMENT0,
+    S_BLOCK_COMMENT1,
+    S_BLOCK_COMMENT2,
+    S_BLOCK_COMMENT3,
+    S_BLOCK_COMMENT4,
+    S_BLOCK_COMMENT5,
+    S_BLOCK_COMMENT,
+    S_BLOCK_COMMENT_END0,
+    S_BLOCK_COMMENT_END1,
+    S_BLOCK_COMMENT_END2,
+    S_BLOCK_COMMENT_END3,
+    S_BLOCK_COMMENT_END4,
     //Error state
     S_ERROR
 } FSMState_t;
@@ -161,9 +174,9 @@ typedef enum {
     K_WHILE
 } Keyword_t;
 
-static const size_t dynamic_string_size = 100;
 static int no_read = 0;
 static int read_char = 0;
+static int char_from_newline = 0;
 /**
  * Function will return converted int value, if value
  * is out of range the function will return -1
@@ -424,15 +437,28 @@ int GetToken(FILE * Input, DStr_t **DStr, Token_t *token)
     {
         //DebugFPrintf(stdout, "Reading char: %c\n", (char)read_char);
         //DebugFPrintf(stdout, "State: %s -> ", states_names[state]);
-        //internal allocation error
-        //if(DStrAddChar(DStr, read_char) == -1)
-        //    return -1;
+
         read_char = (no_read)?read_char:fgetc(Input);
+        no_read = 0;
+
         if(DStrAddChar(DStr, read_char) == 0)
         {
-            return -2;
+            return GET_TOKEN_INT_ERR;
         }
-        no_read = 0;
+        char_from_newline++;
+        /*
+         ______      ______     _         _
+        |  ____|    / _____|   | \       / |
+        | |        | /         |  \     /  |
+        | |        | |         | \ \   / / |
+        | |____    | \_____    | |\ \_/ /| |
+        |  ____|    \____  \   | | \   / | |
+        | |              \ |   | |  \_/  | |
+        | |              | |   | |       | |
+        | |         _____/ |   | |       | |
+        |_|        |______/    |_|       |_|
+
+        */
         switch(state)
         {
 
@@ -467,15 +493,27 @@ int GetToken(FILE * Input, DStr_t **DStr, Token_t *token)
                     state = S_EOL;
                     stop = 1;
                 }*/
-                if (read_char == ' ' || read_char == '\t' || read_char == '\n')
+                if (read_char == ' ' || read_char == '\t')
                 {
                     DStrDeleteLast(*DStr);
                     state = S_INITIAL;
                 }
                 else if(read_char == -1)
                 {
+                    DStrDeleteLast(*DStr);
                     state = S_EOF;
                     stop = 1;
+                }
+                else if(read_char == '\n')
+                {
+                    DStrDeleteLast(*DStr);
+                    char_from_newline = 0;
+                    state = S_EOL;
+                }
+                else if(read_char == '=' && char_from_newline == 1)
+                {
+                    DStrDeleteLast(*DStr);
+                    state = S_BLOCK_COMMENT0;
                 }
                 else if(read_char >= 'a' && read_char <= 'z')
                 {
@@ -584,6 +622,21 @@ int GetToken(FILE * Input, DStr_t **DStr, Token_t *token)
             |_____|  |_|
 
             */
+            case S_EOL:
+            {
+                DStrDeleteLast(*DStr);
+                char_from_newline = 0;
+                if(read_char == '\t' || read_char == ' ' || read_char == '\n')
+                {
+                    state = S_EOL;
+                }
+                else
+                {
+                    no_read = 1;
+                    stop = 1;
+                }
+                break;
+            }
             case S_POTENTIAL_IDENTIFIER_READ:
             {
                 if(read_char >= 'a' && read_char <= 'z')
@@ -1019,10 +1072,203 @@ int GetToken(FILE * Input, DStr_t **DStr, Token_t *token)
                 }
                 break;
             }
+
+
+            //block Comment
+            case S_BLOCK_COMMENT0:
+            {
+                DStrDeleteLast(*DStr);
+                if(read_char == 'b')
+                {
+                    state = S_BLOCK_COMMENT1;
+                }
+                else
+                {
+                    state = S_ERROR;
+                    stop = 1;
+                }
+                break;
+            }
+            case S_BLOCK_COMMENT1:
+            {
+                DStrDeleteLast(*DStr);
+                if(read_char == 'e')
+                {
+                    state = S_BLOCK_COMMENT2;
+                }
+                else
+                {
+                    state = S_ERROR;
+                    stop = 1;
+                }
+                break;
+            }
+            case S_BLOCK_COMMENT2:
+            {
+                DStrDeleteLast(*DStr);
+                if(read_char == 'g')
+                {
+                    state = S_BLOCK_COMMENT3;
+                }
+                else
+                {
+                    state = S_ERROR;
+                    stop = 1;
+                }
+                break;
+            }
+            case S_BLOCK_COMMENT3:
+            {
+                DStrDeleteLast(*DStr);
+                if(read_char == 'i')
+                {
+                    state = S_BLOCK_COMMENT4;
+                }
+                else
+                {
+                    state = S_ERROR;
+                    stop = 1;
+                }
+                break;
+            }
+            case S_BLOCK_COMMENT4:
+            {
+                DStrDeleteLast(*DStr);
+                if(read_char == 'n')
+                {
+                    state = S_BLOCK_COMMENT5;
+                }
+                else
+                {
+                    state = S_ERROR;
+                    stop = 1;
+                }
+                break;
+            }
+            case S_BLOCK_COMMENT5:
+            {
+                DStrDeleteLast(*DStr);
+                if(read_char == '\n')
+                {
+                    state = S_BLOCK_COMMENT_END0;
+                }
+                else
+                {
+                    state = S_ERROR;
+                    stop = 1;
+                }
+                break;
+            }
+            case S_BLOCK_COMMENT:
+            {
+                DStrDeleteLast(*DStr);
+                if(read_char == -1)
+                {
+                    state = S_ERROR;
+                    stop = 1;
+                }
+                else if(read_char == '\n')
+                {
+                    state = S_BLOCK_COMMENT_END0;
+                }
+                break;
+            }
+            case S_BLOCK_COMMENT_END0:
+            {
+                DStrDeleteLast(*DStr);
+                if(read_char == '=')
+                {
+                    state = S_BLOCK_COMMENT_END1;
+                }
+                else if(read_char == -1)
+                {
+                    state = S_ERROR;
+                    stop = 1;
+                }
+                else
+                {
+                    state = S_BLOCK_COMMENT;
+                }
+                break;
+            }
+            case S_BLOCK_COMMENT_END1:
+            {
+                DStrDeleteLast(*DStr);
+                if(read_char == 'e')
+                {
+                    state = S_BLOCK_COMMENT_END2;
+                }
+                else if(read_char == -1)
+                {
+                    state = S_ERROR;
+                    stop = 1;
+                }
+                else
+                {
+                    state = S_BLOCK_COMMENT;
+                }
+                break;
+            }
+            case S_BLOCK_COMMENT_END2:
+            {
+                DStrDeleteLast(*DStr);
+                if(read_char == 'n')
+                {
+                    state = S_BLOCK_COMMENT_END3;
+                }
+                else if(read_char == -1)
+                {
+                    state = S_ERROR;
+                    stop = 1;
+                }
+                else
+                {
+                    state = S_BLOCK_COMMENT;
+                }
+                break;
+            }
+            case S_BLOCK_COMMENT_END3:
+            {
+                DStrDeleteLast(*DStr);
+                if(read_char == 'd')
+                {
+                    state = S_BLOCK_COMMENT_END4;
+                }
+                else if(read_char == -1)
+                {
+                    state = S_ERROR;
+                    stop = 1;
+                }
+                else
+                {
+                    state = S_BLOCK_COMMENT;
+                }
+                break;
+            }
+            case S_BLOCK_COMMENT_END4:
+            {
+                DStrDeleteLast(*DStr);
+                if(read_char == '\n')
+                {
+                    state = S_BLOCK_COMMENT_END4;
+                }
+                else if(read_char == -1)
+                {
+                    state = S_EOF;
+                    stop = 1;
+                }
+                else
+                {
+                    state = S_INITIAL;
+                    no_read = 1;
+                }
+                break;
+            }
         }
         //DebugFPuts(states_names[state], stdout);
         //DebugFPuts("\n", stdout);
     }
+
     if(no_read == 1)
     {
        DStrDeleteLast(*DStr);
@@ -1030,15 +1276,10 @@ int GetToken(FILE * Input, DStr_t **DStr, Token_t *token)
 
     //DebugFPrintf(stdout," <- [%s] \n", states_names[state]);
     //DebugFPrintf(stdout,"Token: %s\n", DStrStr(*DStr));
-    /*int idx;
-
-    if((idx = IsFinalState(state)) != -1)
-    {
-        DebugFPrintf(stdout, "%s \e[1m\e[34m[%s]\e[0m", DStrStr(*DStr), final_states_names[idx]);
-    }*/
     //DebugFPuts("--------------- Get Token End -------------\n", stdout);
+    
     if(state == S_ERROR)
-        return -1;
+        return GET_TOKEN_LEX_ERR;
+    
     return PocessToToken(token, *DStr, state);
-    //return DStrStr(*DStr)[DStrLen(*DStr)-1];
 }

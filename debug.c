@@ -56,7 +56,7 @@ void DebugFPrintf(FILE *output ,const char * fmt, ...)
     return;
 }
 
-void DebugFPrintToken(FILE *output, const Token_t * token, DStr_t * DStr)
+void DebugFPrintToken(FILE *output, Token_t * token, DStr_t * DStr)
 {
     fputs(TokenTypesNames[token->type], output);
     fputc('\n', output);
@@ -70,7 +70,7 @@ void DebugFPrintToken(FILE *output, const Token_t * token, DStr_t * DStr)
         fputs(TokenOperationTypesNames[token->operationType], output);
         fputc('\n', output);
     }
-    else if(token->type == T_STRING)
+    else if(token->type == T_STRING || token->type == T_IDENTIFIER)
     {
         fputs((const char *)DStrStr(DStr), output);
         fputc('\n', output);
@@ -97,7 +97,7 @@ void DebugFPrintf(FILE *output ,const char * fmt, ...)
     return;
 }
 
-void DebugFPrintToken(FILE *output, const Token_t * token, const DStr_t * Dstr)
+void DebugFPrintToken(FILE *output, Token_t * token, DStr_t * Dstr)
 {
     return;
 }
