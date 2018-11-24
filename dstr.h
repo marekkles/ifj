@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifndef DSTR_H
 
@@ -19,6 +20,7 @@ typedef struct {
 void DStrInit(DStr_t **DStr, size_t size);
 void DStrFree(DStr_t **DStr);
 int DStrAddChar(DStr_t **DStr, char c);
+int DStrCat(DStr_t **DStr, const char *str);
 void DStrDeleteLast(DStr_t *DStr);
 int DStrClear(DStr_t *DStr);
 size_t DStrLen(DStr_t *DStr);
