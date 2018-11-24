@@ -326,20 +326,20 @@ static int PocessToToken(Token_t *token, DStr_t *DStr, FSMState_t state)
     {
         token->type = T_INTEGER;
         if(state == S_INT_READ && (token->intValue = StringToInt(DStrStr(DStr))) == -1)
-            return -1;
+            return GET_TOKEN_LEX_ERR;
         else if(state == S_INT_BIN1 && (token->intValue = BinStringToInt(DStrStr(DStr))) == -1)
-            return -1;
+            return GET_TOKEN_LEX_ERR;
         else if(state == S_INT_OCT && (token->intValue = OctStringToInt(DStrStr(DStr))) == -1)
-            return -1;
+            return GET_TOKEN_LEX_ERR;
         else if(state == S_INT_HEX1 && (token->intValue = HexStringToInt(DStrStr(DStr))) == -1)
-            return -1;
+            return GET_TOKEN_LEX_ERR;
         return T_INTEGER;
     }
     else if(state == S_DOUBLE_DEC_READ || state == S_DOUBLE_EXP_NUM)
     {
         token->type = T_DOUBLE;
         if((token->doubleValue = StringToDouble(DStrStr(DStr))) == -1)
-            return -1;
+            return GET_TOKEN_LEX_ERR;
         return T_DOUBLE;
     }
     else if(state == S_STR_END)
