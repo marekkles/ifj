@@ -46,6 +46,10 @@ int main(int argc, char const *argv[])
     }
     fputs(DStrStr(DStr), stdout);
 
+    DebugFPuts("\nConcatenating string: ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\n", stdout);
+    DStrCat(&DStr, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+    fputs(DStrStr(DStr), stdout);
+
     DebugFPuts("\nFree dynamic string\n", stdout);
     DStrFree(&DStr);
     return 0;

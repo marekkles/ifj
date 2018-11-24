@@ -4,9 +4,12 @@
 #include "token.h"
 #include "return.h"
 
+FILE *input;
+
 int main(int argc, char const *argv[])
 {
     FILE *output = stdout;
+    input = stdout;
     int return_value = 0;
     DebugFPuts("------------- DEBUG defined ---------------\n", output);
     FILE *input;
@@ -20,7 +23,7 @@ int main(int argc, char const *argv[])
     {
         DebugFPuts("-------- Dynamic string Initialized -------\n", output);
         TokenType_t lastType; 
-        while((lastType = GetToken(input, &DStr, &Token)) != -1)
+        while((lastType = GetToken(&DStr, &Token)) != -1)
         {
             DebugFPrintToken(stdout, &Token, DStr);
             if(lastType == T_EOF)
