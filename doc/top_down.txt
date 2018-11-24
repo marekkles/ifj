@@ -1,18 +1,22 @@
-<program> -> def id <parameters> EOL <statement> end EOL
+<program> -> def id <parameters> EOL <statement> end EOL <program>
+<program> -> def id <parameters> EOL <statement> end EOF
+<program> -> <statement> <program>
+<program> -> EOF
 
 <parameters> -> ( <argument> <argument_other> )
 <parameters> -> <argument> <argument_other>
 <parameters> -> ε
 
 <argument> -> id
-<argument_other> -> , id
-
-<program> -> <statement>
-<program> -> <program>
+<argument_other> -> , id <argument_other>
+<argument_other> -> ε
 
 <statement> -> id = id <parameters> EOL <statement>
+<statement> -> id = id <parameters> EOF
 <statement> -> id <parameters> EOL <statement>
+<statement> -> id <parameters> EOF
 <statement> -> id = <expression> EOL <statement>
+<statement> -> id = <expression> EOF
 <statement> -> <expression> EOL <statement>
 <statement> -> if <expression> then EOL <statement> end EOL <statement>
 <statement> -> while <expression> do EOL <statement> end EOL <statement>

@@ -58,7 +58,8 @@ fsm-test
 hash-test
 main
 
-fsm.svg
+*.svg
+*.zip
 
 #Examples folder
 examples/*
