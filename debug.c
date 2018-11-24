@@ -47,6 +47,11 @@ void DebugFPuts(const char * str, FILE *output)
     fputs(str, output);
     return;
 }
+void DebugFPutc(char c, FILE *output)
+{
+    fputc(c, output);
+    return;
+}
 void DebugFPrintf(FILE *output ,const char * fmt, ...)
 {
     va_list args;
@@ -89,6 +94,10 @@ void DebugFPrintToken(FILE *output, Token_t * token, DStr_t * DStr)
 #else
 
 void DebugFPuts(const char * str, FILE *output)
+{
+    return;
+}
+void DebugFPutc(char c, FILE *output)
 {
     return;
 }

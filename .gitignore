@@ -60,6 +60,7 @@ main
 
 *.svg
 *.zip
+.*
 
 #Examples folder
 examples/*

@@ -8,6 +8,7 @@
 #define DEBUG_H
 
 void DebugFPuts(const char * str, FILE *output);
+void DebugFPutc(char c, FILE *output);
 void DebugFPrintf(FILE *output, const char * fmt, ...);
 void DebugFPrintToken(FILE *output, Token_t * token, DStr_t * DStr);
 
