@@ -1161,6 +1161,8 @@ int GetToken(FILE * Input, DStr_t **DStr, Token_t *token)
             }
             case S_BLOCK_COMMENT:
             {
+                //putchar(read_char);
+                //DebugFPuts(" <= S_BLOCK_COMMENT\n", stdout);
                 DStrDeleteLast(*DStr);
                 if(read_char == -1)
                 {
@@ -1171,14 +1173,24 @@ int GetToken(FILE * Input, DStr_t **DStr, Token_t *token)
                 {
                     state = S_BLOCK_COMMENT_END0;
                 }
+                else
+                {
+                    state = S_BLOCK_COMMENT;
+                }
                 break;
             }
             case S_BLOCK_COMMENT_END0:
             {
+                //putchar(read_char);
+                //DebugFPuts(" <= S_BLOCK_COMMENT_END0\n", stdout);
                 DStrDeleteLast(*DStr);
                 if(read_char == '=')
                 {
                     state = S_BLOCK_COMMENT_END1;
+                }
+                else if(read_char == '\n')
+                {
+                    state = S_BLOCK_COMMENT_END0;
                 }
                 else if(read_char == -1)
                 {
