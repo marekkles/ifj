@@ -17,8 +17,13 @@ enum {
 
 enum {
     PARSE_OK,
-    PARSE_SYN_ERR,
     PARSE_LEX_ERR,
+    PARSE_SYN_ERR,
+    PARSE_UNDEF_VAR,
+    PARSE_TYPE_COMP,
+    PARSE_PARAM_COUNT,
+    PARSE_OTHER,
+    PARSE_ZERO_DIV,
     PARSE_INT_ERR
 };
 
