@@ -1,24 +1,38 @@
-<program> -> def id <parameters> EOL <statement> end EOL <program>
-<program> -> def id <parameters> EOL <statement> end EOF
-<program> -> <statement> <program>
-<program> -> EOF
+<Program> -> def id (<ParameterList>) EOL <Command> end <Program>
+<Program> -> EOL <Program>
+<Program> -> EOF
+<Program> -> <Command> <Program>
 
-<parameters> -> ( <argument> <argument_other> )
-<parameters> -> <argument> <argument_other>
-<parameters> -> ε
+<ParameterList> -> id
+<ParameterList> -> id <ParameterOther>
+<ParameterList> -> ε
 
-<argument> -> id
-<argument_other> -> , id <argument_other>
-<argument_other> -> ε
+<ParameterOther> -> , id <ParameterOther>
+<ParameterOther> -> ε
 
-<statement> -> id = id <parameters> EOL <statement>
-<statement> -> id = id <parameters> EOF
-<statement> -> id <parameters> EOL <statement>
-<statement> -> id <parameters> EOF
-<statement> -> id = <expression> EOL <statement>
-<statement> -> id = <expression> EOF
-<statement> -> <expression> EOL <statement>
-<statement> -> if <expression> then EOL <statement> end EOL <statement>
-<statement> -> while <expression> do EOL <statement> end EOL <statement>
-<statement> -> ε
+<TermList> -> <Term>
+<TermList> -> <Term> <TermOther>
+<TermList> -> ε
+
+<Term> -> id
+<Term> -> int
+<Term> -> double
+<Term> -> string
+
+<TermOther> -> , <Term> <TermOther>
+<TermOther> -> ε
+
+<Command> -> if <Expression> then EOL <Command> end <Command>
+<Command> -> while <Expression> do EOL <Command> end <Command>
+
+<Command> -> id = id (<TermList>) EOL <Command>
+<Command> -> id = id (<TermList>) EOF
+<Command> -> id = id <TermList> EOL <Command>
+<Command> -> id = id <TermList> EOF
+<Command> -> id <TermList> EOL <Command>
+<Command> -> id <TermList> EOF
+<Command> -> id = <Expression> EOL <Command>
+<Command> -> id = <Expression> EOF
+<Command> -> <Expression> EOL <Command>
+<Command> -> ε
 
