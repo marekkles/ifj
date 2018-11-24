@@ -11,9 +11,8 @@
 
 
 enum {
-    GET_TOKEN_OK,
-    GET_TOKEN_LEX_ERR,
-    GET_TOKEN_INT_ERR
+    GET_TOKEN_LEX_ERR = -1,
+    GET_TOKEN_INT_ERR = -2
 };
 
 enum {
