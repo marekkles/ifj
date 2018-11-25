@@ -91,6 +91,17 @@ int DStrCat(DStr_t **DStr, const char *str)
     return 1;
 }
 /**
+ * Function will replace content of dynamic string with str,
+ * it will return 1 if repacement went as planed, 0 if not
+ * @param DStr Dynamic string to replace
+ * @param str String to replace dstr with
+ */
+int DStrReplace(DStr_t **DStr, const char *str)
+{
+    DStrClear(*DStr);
+    return DStrCat(DStr, str);
+}
+/**
  * Function will deete last character and set it to zero
  * it will also decremet length of string
  * @param DStr Input dynamic string
