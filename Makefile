@@ -27,4 +27,4 @@ clean-all:
 	rm ${TARGETS}
 
 zip:
-	zip -j xvasko16.zip *.c *.h Makefile rozdeleni doc/dokumentace.pdf
+	zip -j xvasko16.zip *.c *.h Makefile rozdeleni rozsireni doc/dokumentace.pdf
