@@ -24,15 +24,12 @@
 
 <Command> -> if <Expression> then EOL <Command> end <Command>
 <Command> -> while <Expression> do EOL <Command> end <Command>
-
-<Command> -> id = id (<TermList>) EOL <Command>
-<Command> -> id = id (<TermList>) EOF
-<Command> -> id = id <TermList> EOL <Command>
-<Command> -> id = id <TermList> EOF
-<Command> -> id <TermList> EOL <Command>
-<Command> -> id <TermList> EOF
-<Command> -> id = <Expression> EOL <Command>
-<Command> -> id = <Expression> EOF
-<Command> -> <Expression> EOL <Command>
+<Command> -> EOL <Command>
+<Command> -> id ( <TermList> ) <Command>
+<Command> -> id <TermList> <Command>
+<Command> -> id = id (<TermList>) <Command>
+<Command> -> id = id <TermList> <Command>
+<Command> -> id = <Expression> <Command>
+<Command> -> <Expression> <Command>
 <Command> -> ε
 
