@@ -108,7 +108,9 @@ int DStrReplace(DStr_t **DStr, const char *str)
  */
 void DStrDeleteLast(DStr_t *DStr)
 {
-    DStr->strlen = DStr->strlen - (DStr->strlen)?1:0;
+    if(DStr->strlen <= 0)
+        return;
+    (DStr->strlen)--;
     DStr->str[DStr->strlen] = 0;
 }
 /**
