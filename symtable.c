@@ -86,15 +86,16 @@ SymTableItem_t *SymTableAddItem(SymTable_t *SymTable, SymTableItem_t *Item)
     {
         return NULL;
     }
+    
     else
     {
         SymTableItem_t *addedItem;
         
         if((addedItem = malloc(sizeof(SymTableItem_t))) == NULL) return;
         
-        strcpy(addedItem->key, item->key);
-        addedItem->type = item->type;
-        addedItem->NextPtr = item->NextPtr;
+            strcpy(addedItem->key, item->key);
+            addedItem->type = item->type;
+            addedItem->NextPtr = item->NextPtr;
     }
 
     return addedItem;
