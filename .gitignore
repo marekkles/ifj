@@ -56,11 +56,13 @@ dkms.conf
 dstr-test
 fsm-test
 hash-test
+parser-test
+
 main
 
 *.svg
 *.zip
-.*
+.vscode
 
 #Examples folder
 examples/*
