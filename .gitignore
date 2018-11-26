@@ -57,6 +57,9 @@ dstr-test
 fsm-test
 hash-test
 parser-test
+symtable-test
+
+fsm.easy.gv
 
 main
 
