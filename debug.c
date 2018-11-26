@@ -64,30 +64,34 @@ void DebugFPrintf(FILE *output ,const char * fmt, ...)
 void DebugFPrintToken(FILE *output, Token_t * token, DStr_t * DStr)
 {
     fputs(TokenTypesNames[token->type], output);
-    fputc('\n', output);
     if(token->type == T_KEYWORD)
     {
+        fputs(", ", output);
         fputs(TokenKeywordTypesNames[token->keywordType], output);
-        fputc('\n', output);
     }
     else if(token->type == T_OPERATION)
     {
+        fputs(", ", output);
         fputs(TokenOperationTypesNames[token->operationType], output);
         fputc('\n', output);
     }
     else if(token->type == T_STRING || token->type == T_IDENTIFIER)
     {
+        fputs(", ", output);
         fputs((const char *)DStrStr(DStr), output);
         fputc('\n', output);
     }
     else if(token->type == T_INTEGER)
     {
-        fprintf(output, "%d\n", token->intValue);
+        fputs(", ", output);
+        fprintf(output, "%d", token->intValue);
     }
     else if(token->type == T_DOUBLE)
     {
-        fprintf(output, "%lf\n", token->doubleValue);
+        fputs(", ", output);
+        fprintf(output, "%lf", token->doubleValue);
     }
+    fputc('\n', output);
     return;
 }
 
