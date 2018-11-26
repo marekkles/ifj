@@ -25,6 +25,7 @@
 <Command> -> if <Expression> then EOL <Command> end <Command>
 <Command> -> while <Expression> do EOL <Command> end <Command>
 <Command> -> EOL <Command>
+<Command> -> nil <Command>
 <Command> -> id ( <TermList> ) <Command>
 <Command> -> id <TermList> <Command>
 <Command> -> id = id (<TermList>) <Command>

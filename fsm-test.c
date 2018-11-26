@@ -9,7 +9,16 @@ FILE *input;
 int main(int argc, char const *argv[])
 {
     FILE *output = stdout;
-    input = stdout;
+    if(argc != 2)
+    {
+        DebugFPuts("Program expects 2 arguments\n", output);
+        return 1;
+    }
+    if((input = fopen(argv[1], "r")) == NULL)
+    {
+        DebugFPuts("Invalid filename\n", output);
+        return 1;
+    }
     int return_value = 0;
     DebugFPuts("------------- DEBUG defined ---------------\n", output);
     FILE *input;
@@ -37,7 +46,6 @@ int main(int argc, char const *argv[])
         {
             return_value = INTERNAL_ERROR;
         }
-        DStrFree(&DStr);
         DebugFPuts("----------- Dynamic string freed ----------\n", output);
     }
     else
@@ -47,7 +55,8 @@ int main(int argc, char const *argv[])
     }
     
     DebugFPuts("--------------- File closed ---------------\n", output);
-    fclose(input);
+    //fclose(input);
+    DStrFree(&DStr);
     DebugFPuts("------------- Program finised -------------\n", output);
     return return_value;
 }

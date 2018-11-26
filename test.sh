@@ -1,0 +1,1 @@
+./parser-test testparse.rb; printf "\n---------------------\n\n[ RETURN ] = %d\n" $?
