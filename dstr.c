@@ -18,7 +18,7 @@ void DStrInit(DStr_t **DStr, size_t size)
         (*DStr)->strlen = 0;
         for(int i = 0; i < size; i++)
         {
-            (*DStr)->str[i] = 0;
+            (*DStr)->str[i] = '\0';
         }
     }
     return;

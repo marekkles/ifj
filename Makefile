@@ -1,20 +1,21 @@
 CC=gcc
 CFLAGS=
 TARGETS=main
-TESTS=fsm-test dstr-test hash-test parser-test
+TESTS=fsm-test dstr-test hash-test parser-test symtable-test
 all: ${TARGETS}
 
-debug: CFLAGS += -DDEBUG
+debug: CFLAGS += -DDEBUG -ggdb
 debug: ${TARGETS}
 
 test: ${TESTS}
-debug-test: CFLAGS += -DDEBUG
+debug-test: CFLAGS += -DDEBUG -ggdb
 debug-test:  ${TESTS}
 
-fsm-test: fsm-test.o fsm.o dstr.o debug.o
-dstr-test: dstr-test.o dstr.o debug.o
+fsm-test: fsm-test.o fsm.o dstr.o debug.o symtable.o
+dstr-test: dstr-test.o dstr.o debug.o symtable.o
 hash-test: hash-test.o hash.o
-parser-test: parser-test.o debug.o dstr.o parser.o fsm.o
+parser-test: parser-test.o debug.o dstr.o parser.o fsm.o symtable.o
+symtable-test: symtable-test.o debug.o dstr.o symtable.o
 
 main: main.o fsm.o dstr.o debug.o
 

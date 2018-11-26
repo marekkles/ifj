@@ -45,11 +45,13 @@ const char * TokenOperationTypesNames[] = {
 void DebugFPuts(const char * str, FILE *output)
 {
     fputs(str, output);
+    fflush(output);
     return;
 }
 void DebugFPutc(char c, FILE *output)
 {
     fputc(c, output);
+    fflush(output);
     return;
 }
 void DebugFPrintf(FILE *output ,const char * fmt, ...)
@@ -58,6 +60,7 @@ void DebugFPrintf(FILE *output ,const char * fmt, ...)
     va_start(args, fmt);
     vfprintf(output, fmt, args);
     va_end(args);
+    fflush(output);
     return;
 }
 
@@ -92,7 +95,41 @@ void DebugFPrintToken(FILE *output, Token_t * token, DStr_t * DStr)
         fprintf(output, "%lf", token->doubleValue);
     }
     fputc('\n', output);
+    fflush(output);
     return;
+}
+
+void DebugFPrintSymTableItem(FILE *output, SymTableItem_t *symtableItem)
+{
+    if(symtableItem->type = SYM_VARIABLE)
+    {
+        fputs("SYM_VARIABLE, \"", output);
+        fputs(symtableItem->key, output);
+        fprintf(output, "\", local = %d\n", symtableItem->local);
+    }
+    else
+    {
+        fputs("SYM_FUNCTION, \"", output);
+        fputs(symtableItem->key, output);
+        fprintf(output, "\", parameterCount = %d, def = %d\n", symtableItem->parameterCount, symtableItem->def);
+    }
+    fflush(output);
+}
+
+void DebugFPrintSymTable(FILE *output, SymTable_t *symtable)
+{
+    for(int i = 0; i < symtable->size; i++)
+    {
+        fprintf(output, "Idx: [%d]\n", i);
+        SymTableItem_t *currentItem = symtable->table[i];
+        while(currentItem != NULL)
+        {
+            fputs("    ->", output);
+            DebugFPrintSymTableItem(output, currentItem);
+            currentItem = currentItem->NextPtr;
+        }
+    }
+    fflush(output);
 }
 
 #else
@@ -114,5 +151,12 @@ void DebugFPrintToken(FILE *output, Token_t * token, DStr_t * Dstr)
 {
     return;
 }
-
+void DebugFPrintSymTableItem(FILE *output, SymTableItem_t *symtableItem)
+{
+    return;
+}
+void DebugFPrintSymTable(FILE *output, SymTable_t *symtable)
+{
+    return;
+}
 #endif
