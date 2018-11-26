@@ -9,7 +9,6 @@
 
 // Return Values
 
-
 #define EVERYTHING_OK 					         0 // No error.
 #define LEXICAL_ERROR		                 1 // Lexical structure error.
 #define SYNTAX_ERROR					           2 // Syntax error.
@@ -23,6 +22,11 @@
 enum {
     GET_TOKEN_LEX_ERR = -1,
     GET_TOKEN_INT_ERR = -2
+};
+
+enum {
+    ALL_OK,
+    ALLOCATION_ERR
 };
 
 enum {
