@@ -244,6 +244,140 @@ static double StringToDouble(const char *string)
         return -1;
     return result;
 }
+static int ProcessString(DStr_t **input)
+{
+    DStr_t *DStr_temp;
+    DStrInit(&DStr_temp, 50);
+    if(DStr_temp == NULL)
+        return GET_TOKEN_INT_ERR;
+    if(!DStrReplace(&DStr_temp, DStrStr(*input)))
+    {
+        DStrFree(&DStr_temp);
+        return GET_TOKEN_INT_ERR;
+    }
+
+    DStrClear(*input);
+    char *string=DStrStr(DStr_temp);
+
+    enum {
+        STRING_READ,
+        STRING_ESCAPE,
+        STRING_ESCAPE_HEX,
+        STRING_ESCAPE_HEX1,
+    };
+    int state = STRING_READ, stop = 0, return_value = T_STRING, escape_value = 0;
+    for(int i = 1; i < DStrLen(DStr_temp) - 1 && !stop; i++)
+    {
+        
+        switch (state)
+        {
+            case STRING_READ:
+            {
+                if(
+                    string[i] > 31 && string[i] < 127 && 
+                    string[i] != ' ' && string[i] != '\\' &&
+                    string[i] != '_' && string[i] != '-' &&
+                    string[i] != '$' && string[i] != '&' &&
+                    string[i] != '%' && string[i] != '*' &&
+                    string[i] != '?' && string[i] != '!' &&
+                    string[i] != '#'
+                  )
+                {
+                    if(!DStrAddChar(input, string[i]))
+                        return_value = GET_TOKEN_INT_ERR;
+                }
+                else if(string[i] == '\\')
+                {
+                    state = STRING_ESCAPE;
+                }
+                else 
+                {
+                    escape_value = (unsigned)string[i]; 
+                    if(!DStrAddChar(input, '\\'))
+                        return_value = GET_TOKEN_INT_ERR;
+                    if(!DStrAddChar(input, (char)((escape_value/100)+'0') ))
+                        return_value = GET_TOKEN_INT_ERR;
+                    if(!DStrAddChar(input, (char)(((escape_value%100)/10)+'0') ))
+                        return_value = GET_TOKEN_INT_ERR;
+                    if(!DStrAddChar(input, (char)((escape_value%10)+'0') ))
+                        return_value = GET_TOKEN_INT_ERR;
+                    escape_value = 0;
+                }
+                break;
+            }
+            case STRING_ESCAPE:
+            {
+                state = STRING_READ;
+                if(string[i] == '"')
+                {
+                    if(!DStrAddChar(input, string[i]))
+                        return_value = GET_TOKEN_INT_ERR;
+                }
+                else if (string[i] == 'n')
+                {
+                    if(!DStrCat(input, "\\010"))
+                        return_value = GET_TOKEN_INT_ERR;
+                }
+                else if (string[i] == 's')
+                {
+                    if(!DStrCat(input, "\\020"))
+                        return_value = GET_TOKEN_INT_ERR;
+                }
+                else if (string[i] == 't')
+                {
+                    if(!DStrCat(input, "\\009"))
+                        return_value = GET_TOKEN_INT_ERR;
+                }
+                else
+                {
+                    state = STRING_ESCAPE_HEX;
+                }
+                break;
+            }
+            case STRING_ESCAPE_HEX:
+            {
+                int c = string[i];
+                if(c >= '0' && c <= '9')
+                    escape_value = 16*(c-'0');
+                else if(c >= 'a' && c <= 'z')
+                    escape_value = 16*(c-'a'+10);
+                else if(c >= 'A' && c <= 'Z')
+                    escape_value = 16*(c-'A'+10);
+                state = STRING_ESCAPE_HEX1;
+                break;
+            }
+            case STRING_ESCAPE_HEX1:
+            {
+                int c = string[i];
+                char char_seq[4] = {0,};
+
+                if(c >= '0' && c <= '9')
+                    escape_value += (c-'0');
+                else if(c >= 'a' && c <= 'z')
+                    escape_value += (c-'a'+10);
+                else if(c >= 'A' && c <= 'Z')
+                    escape_value += (c-'A'+10);
+                if(!DStrAddChar(input, '\\'))
+                        return_value = GET_TOKEN_INT_ERR;
+            
+                char_seq[2] = escape_value%10 + '0';
+                escape_value /= 10;
+                char_seq[1] = escape_value%10 + '0'; 
+                escape_value /= 10;
+                char_seq[0] = escape_value%10 + '0'; 
+                escape_value /= 10;
+
+                if(!DStrCat(input, char_seq))
+                    return_value = GET_TOKEN_INT_ERR;
+                state = STRING_READ;
+                break;
+            }
+        }
+    }
+
+    DStrFree(&DStr_temp);
+    return return_value;
+}
 /**
  * If input string is keyword then function will return
  * Integer representing keyword in enum Keyword_t
@@ -300,12 +434,12 @@ static int IsKeyword(const char *potential_keyword)
  * @param DStr input DStr
  * @param state What was the fsm final state
  */
-static int PocessToToken(Token_t *token, DStr_t *DStr, FSMState_t state)
+static int PocessToToken(Token_t *token, DStr_t **DStr, FSMState_t state)
 {
     if(state == S_POTENTIAL_IDENTIFIER_READ || state == S_IDENTIFIER_READ || state == S_FUNCTION)
     {
         TokenKewordType_t keyword;
-        if((keyword = IsKeyword(DStrStr(DStr))) != -1 && state == S_POTENTIAL_IDENTIFIER_READ)
+        if((keyword = IsKeyword(DStrStr(*DStr))) != -1 && state == S_POTENTIAL_IDENTIFIER_READ)
         {
             token->type = T_KEYWORD;
             token->keywordType = keyword;
@@ -326,28 +460,27 @@ static int PocessToToken(Token_t *token, DStr_t *DStr, FSMState_t state)
     else if(state == S_INT_READ || state == S_INT_BIN1 || state == S_INT_OCT || state == S_INT_HEX1)
     {
         token->type = T_INTEGER;
-        if(state == S_INT_READ && (token->intValue = StringToInt(DStrStr(DStr))) == -1)
+        if(state == S_INT_READ && (token->intValue = StringToInt(DStrStr(*DStr))) == -1)
             return GET_TOKEN_LEX_ERR;
-        else if(state == S_INT_BIN1 && (token->intValue = BinStringToInt(DStrStr(DStr))) == -1)
+        else if(state == S_INT_BIN1 && (token->intValue = BinStringToInt(DStrStr(*DStr))) == -1)
             return GET_TOKEN_LEX_ERR;
-        else if(state == S_INT_OCT && (token->intValue = OctStringToInt(DStrStr(DStr))) == -1)
+        else if(state == S_INT_OCT && (token->intValue = OctStringToInt(DStrStr(*DStr))) == -1)
             return GET_TOKEN_LEX_ERR;
-        else if(state == S_INT_HEX1 && (token->intValue = HexStringToInt(DStrStr(DStr))) == -1)
+        else if(state == S_INT_HEX1 && (token->intValue = HexStringToInt(DStrStr(*DStr))) == -1)
             return GET_TOKEN_LEX_ERR;
         return T_INTEGER;
     }
     else if(state == S_DOUBLE_DEC_READ || state == S_DOUBLE_EXP_NUM)
     {
         token->type = T_DOUBLE;
-        if((token->doubleValue = StringToDouble(DStrStr(DStr))) == -1)
+        if((token->doubleValue = StringToDouble(DStrStr(*DStr))) == -1)
             return GET_TOKEN_LEX_ERR;
         return T_DOUBLE;
     }
     else if(state == S_STR_END)
     {
         token->type = T_STRING;
-        //Convert string to just values
-        return T_STRING;
+        return ProcessString(DStr);
     }
     else if(state == S_LESSER_THAN || state == S_GREATER_THAN || state == S_ASSIGNMENT || state == S_EQUAL_TO || state == S_NOT_EQUAL_TO || state == S_MULTIPLY || state == S_DIVIDE || state == S_ADD || state == S_SUBTRACT || state == S_GREATER_EQUAL_THAN|| state == S_LESSER_EQUAL_THAN || state == S_LBRACKET || state == S_RBRACKET || state == S_COMMA)
     {
@@ -1294,5 +1427,5 @@ int GetToken(DStr_t **DStr, Token_t *token)
     if(state == S_ERROR)
         return GET_TOKEN_LEX_ERR;
     
-    return PocessToToken(token, *DStr, state);
+    return PocessToToken(token, DStr, state);
 }
