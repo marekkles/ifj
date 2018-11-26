@@ -1,3 +1,4 @@
+#include <string.h>
 #include "symtable.h"
 
 unsigned int hashCode(const char *str)
@@ -29,6 +30,7 @@ SymTableItem_t *SymTableAllocateItem(SymTableSymbolType_t type, char *key)
     Item->key = assigned_key;
     return Item;
 }
+*/
 void SymTableItemFree(SymTableItem_t *Item)
 {
     free(Item->key);
@@ -36,9 +38,16 @@ void SymTableItemFree(SymTableItem_t *Item)
         SymTableDispose(&(Item->STable));
     free(Item);
 }
-void SymTableItemCopy(SymTableItem_t *Destination, SymTableItem_t *Source);
-//commit
-*/
+void SymTableItemCopy(SymTableItem_t *Dest, SymTableItem_t *Src);
+{
+    if (Dest != NULL || Src != NULL) {
+    
+        strcpy(dest->key,src->key);
+        Dest->type = Src->type;
+        Dest->NextPtr = Src->NextPtr;
+    }
+}
+
 void SymTableInit(SymTable_t **SymTable, size_t size)
 {
     if((*SymTable = malloc(sizeof(SymTable_t) + sizeof(SymTableItem_t *)*size)) == NULL)
@@ -72,21 +81,42 @@ SymTableItem_t *SymTableFindItem(SymTable_t *SymTable, char *key)
 
 SymTableItem_t *SymTableAddItem(SymTable_t *SymTable, SymTableItem_t *Item)
 {
-    SymTableItem_t *foundItem =SymTableFindItem(SymTable, Item->key);
+    SymTableItem_t *foundItem = SymTableFindItem(SymTable, Item->key);
     if(foundItem != NULL)
     {
         return NULL;
     }
+    
     else
     {
-
+        SymTableItem_t *addedItem;
+        
+        if((addedItem = malloc(sizeof(SymTableItem_t))) == NULL) return;
+        
+            strcpy(addedItem->key, item->key);
+            addedItem->type = item->type;
+            addedItem->NextPtr = item->NextPtr;
     }
+
+    return addedItem;
 }
 
 void SymTableRemoveItem(SymTable_t *SymTable, char *key)
 {
-    unsigned int Index = SymTableIndex(SymTable, key);
+    SymTableItem_t *foundItem = SymTableFindItem(SymTable, key)
     
     SymTableItemFree(foundItem);
 }
-void SymTableDispose(SymTable_t **SymTable);
+void SymTableDispose(SymTable_t **SymTable)
+{
+    SymTableItem_t CurrentItem;
+    
+    for (int i = 0; i < SymTable_t->size ; ++i)
+    {
+        
+        CurrentItem = *(Symtable)[i];
+        free(CurrentItem);
+        
+        *(Symtable)[i] = NULL;
+    }
+}

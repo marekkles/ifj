@@ -6,7 +6,7 @@
 
 #define SYMTABLE_H
 
-typedef enum {S_FUNCTION, S_INTEGER, S_DOUBLE} SymTableSymbolType_t;
+typedef enum {S_FUNCTION, S_INTEGER, S_DOUBLE, S_UNDEF} SymTableSymbolType_t;
 
 typedef struct {
     char *key;
@@ -21,10 +21,10 @@ typedef struct {
 } SymTable_t;
 
 /*SymTableItem_t *SymTableAllocateItem(SymTableSymbolType_t type, char *key);
-void SymTableItemFree(SymTableItem_t *Item);
+
 void SymTableItemCopy(SymTableItem_t *Destination, SymTableItem_t *Source); */
 
-
+void SymTableItemFree(SymTableItem_t *Item);
 void SymTableInit(SymTable_t **SymTable, size_t size, unsigned int (*hashFunction)(const char *));
 unsigned int SymTableIndex(SymTable_t *SymTable, char *key);
 SymTableItem_t *SymTableFindItem(SymTable_t *SymTable, char *key);
