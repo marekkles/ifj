@@ -9,6 +9,10 @@
 
 #define PARSER_H
 
-int Parse(FILE *input);
+extern FILE *input;
+extern FILE *output;
+extern int in_function;
+
+int Parse(void);
 
 #endif
