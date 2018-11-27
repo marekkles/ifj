@@ -11,12 +11,12 @@ void Init_SStack (SStack_t** Stack, size_t size) {
 	}
 
 	(*Stack)->size = size;
-	(*Stack)->top = -1;
+	(*Stack)->Top = -1;
 }
 
 void Push_SStack (SStack_t** Stack, StackItem_t* Item) {
 	
-	if ((*Stack)->size <= (*Stack)->top + 1) { //overflow
+	if ((*Stack)->size <= (*Stack)->Top + 1) { //overflow
 		SStack_t* TmpStack = realloc(TmpStack, ((*Stack)->size + MIN_REALLOC + sizeof(SStack_t)));
 			if (TmpStack == NULL){
 				return 0;
@@ -32,7 +32,7 @@ void Push_SStack (SStack_t** Stack, StackItem_t* Item) {
 
 void Pop_SStack (SStack* Stack) {
 
-	if ((*Stack)->top = -1;) {
+	if ((*Stack)->top = -1) {
 		return NULL; //underflow
 	}
 	
