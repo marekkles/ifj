@@ -30,14 +30,14 @@ void Push_SStack (SStack_t** Stack, StackItem_t* Item) {
 	return 1;
 }
 
-void Pop_SStack (SStack* Stack) {
+void Pop_SStack (SStack_t* PStack) {
 
-	if ((*Stack)->top = -1) {
+	if ((*PStack)->top = -1) {
 		return NULL; //underflow
 	}
 	
-	StackItem_t* Item = (*Stack)->Stack[(*Stack)->Top];
-	(*Stack)->Top--;
+	StackItem_t* Item = (*PStack)->Stack[PStack->Top];
+	PStack->Top--;
 }
 
 StackItem_t* Top_SStack (SStack_t* Stack) {

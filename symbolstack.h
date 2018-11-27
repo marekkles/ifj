@@ -10,7 +10,7 @@ typedef enum {
 	T_ITEM,
 	INTEGER,
 	DOUBLE,
-	OP_TYPE;
+	OP_TYPE,
 } StackItemType_enum;
 
 typedef struct {
@@ -19,7 +19,7 @@ typedef struct {
 		SymTableItem_t * TItem;
 		int intValue;
 		double doubleValue;
-		TokenOperationType_T operationType;
+		TokenOperationType_t operationType;
 	} item;
 	
 	StackItemType_enum Type;
