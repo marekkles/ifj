@@ -35,8 +35,6 @@ void Pop_SStack (SStack_t* PStack) {
 	if ((*PStack)->top = -1) {
 		return NULL; //underflow
 	}
-	
-	StackItem_t* Item = (*PStack)->Stack[PStack->Top];
 	PStack->Top--;
 }
 
