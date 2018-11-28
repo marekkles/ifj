@@ -26,15 +26,26 @@ int main(int argc, char const *argv[])
     SymTableAddFunction(symtable, "fun", 0, true);
 
     SymTableSetLocalMode(symtable);
-
     SymTableAddVariable(symtable, "a");
-
+    DebugFPuts("Add: a\n", stdout);
     SymTableAddVariable(symtable, "b");
-
-    SymTableAddVariable(symtable, "id");
-
-    DebugFPrintSymTable(stdout, symtable);
-
+    DebugFPuts("Add: b\n", stdout);
+    SymTableAddVariable(symtable, "c");
+    DebugFPuts("Add: c\n", stdout);
+    SymTableAddVariable(symtable, "d");
+    DebugFPuts("Add: d\n", stdout);
+    SymTableAddVariable(symtable, "e");
+    DebugFPuts("Add: e\n", stdout);
+    SymTableAddVariable(symtable, "f");
+    DebugFPuts("Add: f\n", stdout);
+    SymTableAddVariable(symtable, "g");
+    DebugFPuts("Add: g\n", stdout);
+    SymTableAddVariable(symtable, "h");
+    DebugFPuts("Add: h\n", stdout);
+    SymTableAddVariable(symtable, "i");
+    DebugFPuts("Add: i\n", stdout);
+    SymTableAddVariable(symtable, "j");
+    DebugFPuts("Add: j\n", stdout);
     SymTableUnSetLocalMode(symtable);
 
     DebugFPrintSymTable(stdout, symtable);

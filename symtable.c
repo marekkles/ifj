@@ -92,14 +92,13 @@ SymTableItem_t *SymTableFindItem(SymTable_t *SymTable, char *key)
     unsigned int Index = SymTableIndex(SymTable, key);
     SymTableItem_t * CurrentItem = SymTable->table[Index];
     while(CurrentItem != NULL)
-    {   
+    {
         if(SymTable->localMode == CurrentItem->local || CurrentItem->type == SYM_FUNCTION)
         {
             if(strcmp(key, CurrentItem->key) == 0)
                 break;
         }    
-        else
-            CurrentItem = CurrentItem->NextPtr;
+        CurrentItem = CurrentItem->NextPtr;
     }
     return CurrentItem;
 }
