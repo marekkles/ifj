@@ -15,6 +15,7 @@ unsigned int HashCode(const char *str)
 SymTableItem_t *SymtableAllocateItem(size_t key_len)
 {
     SymTableItem_t *newItem;
+    printf("\n\nMalloc SymtableItem\n\n");
     if((newItem = malloc(sizeof(SymTableItem_t) + sizeof(char)*(key_len + 1))) == NULL)
         return NULL;
     return newItem;
@@ -30,6 +31,7 @@ void SymTableItemFree(SymTableItem_t *Item)
 */
 void SymTableInit(SymTable_t **SymTable, size_t size)
 {
+    printf("\n\nMalloc Symtable\n\n");
     if((*SymTable = malloc(sizeof(SymTable_t) + sizeof(SymTableItem_t *)*size)) == NULL)
     {
         return;
@@ -48,6 +50,37 @@ void SymTableSetLocalMode(SymTable_t *SymTable)
 void SymTableUnSetLocalMode(SymTable_t *SymTable)
 {
     SymTable->localMode = 0;
+    SymTableItem_t *currentItem, *tempItem;
+    bool beginning;
+    for(int i = 0; i < SymTable->size; i++)
+    {
+        currentItem = SymTable->table[i];
+        beginning = 1;
+        while(currentItem != NULL)
+        {
+            if(beginning == 1 && currentItem->type == SYM_VARIABLE && currentItem->local == true)
+            {
+                if(beginning == 1)
+                {
+                    tempItem = currentItem;
+                    SymTable->table[i] = currentItem->NextPtr;
+                    currentItem = currentItem->NextPtr;
+                    SymTableItemFree(tempItem);
+                    beginning = 0;
+                }   
+                else if(currentItem->NextPtr != NULL)
+                {
+                    tempItem = currentItem->NextPtr;
+                    currentItem = tempItem->NextPtr;
+                    SymTableItemFree(tempItem);
+                }
+                else
+                    currentItem = currentItem->NextPtr;
+            }
+            else
+                currentItem = currentItem->NextPtr;
+        }
+    }
 }
 unsigned int SymTableIndex(SymTable_t *SymTable, char *key)
 {
@@ -59,9 +92,12 @@ SymTableItem_t *SymTableFindItem(SymTable_t *SymTable, char *key)
     unsigned int Index = SymTableIndex(SymTable, key);
     SymTableItem_t * CurrentItem = SymTable->table[Index];
     while(CurrentItem != NULL)
-    {
-        if(strcmp(key, CurrentItem->key) == 0)
-            break;
+    {   
+        if(SymTable->localMode == CurrentItem->local || CurrentItem->type == SYM_FUNCTION)
+        {
+            if(strcmp(key, CurrentItem->key) == 0)
+                break;
+        }    
         else
             CurrentItem = CurrentItem->NextPtr;
     }
@@ -114,13 +150,16 @@ void SymTableRemoveItem(SymTable_t *SymTable, char *key)
     SymTableItem_t *tempItem, **rewritePointer;
     rewritePointer = &(SymTable->table[Index]);
     while(*rewritePointer != NULL)
-    {
-        if(strcmp((*rewritePointer)->key, key) == 0)
+    {   
+        if((*rewritePointer)->type == SYM_FUNCTION || (*rewritePointer)->local == SymTable->localMode)
         {
-            tempItem = *rewritePointer;
-            *rewritePointer = tempItem->NextPtr;
-            SymTableItemFree(tempItem);
-            return;
+            if(strcmp((*rewritePointer)->key, key) == 0)
+            {
+                tempItem = *rewritePointer;
+                *rewritePointer = tempItem->NextPtr;
+                SymTableItemFree(tempItem);
+                return;
+            }
         }
         else
         {
@@ -139,7 +178,7 @@ void SymTableDispose(SymTable_t **SymTable)
         {
             TempItem = CurrentItem;
             CurrentItem = CurrentItem->NextPtr;
-            SymTableItemFree(CurrentItem);
+            SymTableItemFree(TempItem);
         }
     }
     free(*SymTable);

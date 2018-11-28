@@ -4,6 +4,7 @@
 #include "debug.h"
 #include "dstr.h"
 #include "fsm.h"
+#include "symtable.h"
 
 #ifndef PARSER_H
 

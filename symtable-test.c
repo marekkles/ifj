@@ -23,31 +23,21 @@ int main(int argc, char const *argv[])
         return 0;
     }
 
-    DebugFPrintSymTable(stdout ,symtable);
+    SymTableAddFunction(symtable, "fun", 0, true);
 
-    DStrReplace(&dstr, "abcdFun1");
-    DebugFPuts(DStrStr(dstr), stdout);
-    SymTableAddFunction(symtable, DStrStr(dstr), 5, 1);
-    DebugFPrintSymTable(stdout ,symtable);
-    DStrReplace(&dstr, "abYey1");
-    DebugFPuts(DStrStr(dstr), stdout);
-    SymTableAddFunction(symtable, DStrStr(dstr), 5, 1);
-    DebugFPrintSymTable(stdout ,symtable);
-    DStrReplace(&dstr, "LoLoLo");
-    DebugFPuts(DStrStr(dstr), stdout);
-    SymTableAddFunction(symtable, DStrStr(dstr), 5, 1);
-    DebugFPrintSymTable(stdout ,symtable);
-    DStrReplace(&dstr, "xxxx");
-    DebugFPuts(DStrStr(dstr), stdout);
-    SymTableAddFunction(symtable, DStrStr(dstr), 5, 1);
-    DebugFPrintSymTable(stdout ,symtable);
-    DebugFPutc('\n', stdout);
+    SymTableSetLocalMode(symtable);
 
-    SymTableAddFunction(symtable, DStrStr(dstr), 5, 1);
-    DebugFPrintSymTable(stdout ,symtable);
+    SymTableAddVariable(symtable, "a");
 
-    SymTableAddFunction(symtable, "www", 0, 0);
-    DebugFPrintSymTable(stdout ,symtable);
+    SymTableAddVariable(symtable, "b");
+
+    SymTableAddVariable(symtable, "id");
+
+    DebugFPrintSymTable(stdout, symtable);
+
+    SymTableUnSetLocalMode(symtable);
+
+    DebugFPrintSymTable(stdout, symtable);
 
     SymTableDispose(&symtable);
     return 0;
