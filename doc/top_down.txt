@@ -37,5 +37,8 @@
 <Command> -> id <TermList> <CommandEnd>
 <Command> -> id = id (<TermList>) <CommandEnd>
 <Command> -> id = id <TermList> <CommandEnd>
+<Command> -> id = string <CommandEnd>
+<Command> -> id = <Expression> <CommandEnd>
 <Command> -> <Expression> <CommandEnd>
+<Command> -> string <CommandEnd>
 <Command> -> ε

@@ -154,6 +154,50 @@ void DebugFPrintSymTable(FILE *output, SymTable_t *symtable)
     fflush(output);
 }
 
+void DebugFPrintSStackItem(FILE *output, SStackItem_t *sstackItem)
+{
+    const char *stackItemTypesNames[] = {
+        "STACK_ITEM_SYMBOL",
+        "STACK_ITEM_INTEGER",
+        "STACK_ITEM_DOUBLE",
+        "STACK_ITEM_OPERATION"
+    };
+    int intValue;
+		double doubleValue;
+		TokenOperationType_t operationType;
+
+    fputs(stackItemTypesNames[sstackItem->type], output);
+
+    if(sstackItem->type == STACK_ITEM_INTEGER)
+        fprintf(output, ", %d", sstackItem->intValue);
+    else if(sstackItem->type == STACK_ITEM_DOUBLE)
+        fprintf(output, ", %lf", sstackItem->doubleValue);
+    else if(sstackItem->type == STACK_ITEM_OPERATION)
+    {
+        fputs(", ", output);
+        fputs(TokenOperationTypesNames[sstackItem->operationType], output);
+    }
+    fputc('\n', output);
+    return;
+}
+
+void DebugFPrintSStack(FILE *output, SStack_t *sstack)
+{
+    fputs("+--------+\n", output);
+    fputs("| SStack |\n", output);
+    fputs("+--------+\n", output);
+    fputs(" top ->", output);
+    for(int i = sstack->top; i >= 0; i--)
+    {
+        if(i != sstack->top)
+            fputs("       ", output);    
+        fputs("  ", output);
+        DebugFPrintSStackItem(output, &(sstack->stack[i]));
+    }
+    fputc('\n', output);
+    return;
+}
+
 #else
 
 void DebugFPuts(const char * str, FILE *output)
@@ -178,6 +222,15 @@ void DebugFPrintSymTableItem(FILE *output, SymTableItem_t *symtableItem)
     return;
 }
 void DebugFPrintSymTable(FILE *output, SymTable_t *symtable)
+{
+    return;
+}
+
+void DebugFPrintSStackItem(FILE *output, SStackItem_t *sstackItem)
+{
+    return;
+}
+void DebugFPrintSStack(FILE *output, SStack_t *sstack)
 {
     return;
 }
