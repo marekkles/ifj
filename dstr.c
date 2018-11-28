@@ -52,7 +52,7 @@ int DStrAddChar(DStr_t **DStr, char c)
             return 0;
         }    
         *DStr = DStrNew;
-        (*DStr)->size += sizeof(char)*min_chunk;
+        (*DStr)->size += min_chunk;
     }
     (*DStr)->str[(*DStr)->strlen] = c;
     (*DStr)->strlen++; 

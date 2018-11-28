@@ -101,7 +101,7 @@ void DebugFPrintToken(FILE *output, Token_t * token, DStr_t * DStr)
 
 void DebugFPrintSymTableItem(FILE *output, SymTableItem_t *symtableItem)
 {
-    if(symtableItem->type = SYM_VARIABLE)
+    if(symtableItem->type == SYM_VARIABLE)
     {
         fputs("SYM_VARIABLE, \"", output);
         fputs(symtableItem->key, output);
