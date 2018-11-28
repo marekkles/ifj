@@ -1,14 +1,14 @@
-def fun ()
-    while 1 do
-        while 1 do
-            if 1 then
-
-            else
-
-            end
-        end
-    end
+def fun (id, a, b)
 end
 
-while 2 do
+def fun2 (id, a, b)
+end
+
+def fun3 (id, a, b)
+end
+
+def fun4 (id, a, b)
+end
+
+def fun5 (id, a, b)
 end

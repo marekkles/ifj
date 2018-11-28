@@ -59,6 +59,7 @@ hash-test
 parser-test
 symtable-test
 error-test
+test
 
 fsm.easy.gv
 

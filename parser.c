@@ -174,8 +174,10 @@ static int Program(DStr_t **dstr, Token_t *token)
 
         if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
             return return_value;
-        
-        return Program(dstr, token);
+        if(TokenExpect(token, T_EOL) == PARSE_OK || TokenExpect(token, T_EOF) == PARSE_OK)
+            return Program(dstr, token);
+        else
+            return PARSE_SYN_ERR;
     }
     else if((return_value = TokenExpect(token, T_EOL)) == PARSE_OK)
     {

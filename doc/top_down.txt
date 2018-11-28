@@ -1,4 +1,5 @@
-<Program> -> def id (<ParameterList>) EOL <Command> end <Program>
+<Program> -> def id (<ParameterList>) EOL <Command> end EOL <Program>
+<Program> -> def id (<ParameterList>) EOL <Command> end EOF
 <Program> -> EOL <Program>
 <Program> -> EOF
 <Program> -> <Command> <Program>
@@ -22,15 +23,19 @@
 <TermOther> -> , <Term> <TermOther>
 <TermOther> -> ε
 
-<Command> -> if <Expression> then EOL <Command> end <Command>
-<Command> -> while <Expression> do EOL <Command> end <Command>
-<Command> -> EOL <Command>
-<Command> -> nil <Command>
-<Command> -> id ( <TermList> ) <Command>
-<Command> -> id <TermList> <Command>
-<Command> -> id = id (<TermList>) <Command>
-<Command> -> id = id <TermList> <Command>
-<Command> -> id = <Expression> <Command>
-<Command> -> <Expression> <Command>
-<Command> -> ε
+<CommandEnd> -> EOL <Command>
+<CommandEnd> -> EOF
 
+<Command> -> if <Expression> then EOL <Command> end <CommandEnd>
+<Command> -> while <Expression> do EOL <Command> end <CommandEnd>
+<Command> -> EOL <Command>
+<Command> -> EOF
+<Command> -> nil <CommandEnd>
+<Command> -> print <TermList> <CommandEnd>
+<Command> -> print (<TermList>) <CommandEnd>
+<Command> -> id ( <TermList> ) <CommandEnd>
+<Command> -> id <TermList> <CommandEnd>
+<Command> -> id = id (<TermList>) <CommandEnd>
+<Command> -> id = id <TermList> <CommandEnd>
+<Command> -> <Expression> <CommandEnd>
+<Command> -> ε
