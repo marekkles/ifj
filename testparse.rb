@@ -1,4 +1,5 @@
-def fun (id, a, b)
+def fun(id, a, b)
+    
 end
 
 def fun2 (id, a, b)
@@ -12,3 +13,5 @@ end
 
 def fun5 (id, a, b)
 end
+
+fun10 = fun(id, a, b, c)

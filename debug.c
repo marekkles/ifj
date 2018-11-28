@@ -76,13 +76,11 @@ void DebugFPrintToken(FILE *output, Token_t * token, DStr_t * DStr)
     {
         fputs(", ", output);
         fputs(TokenOperationTypesNames[token->operationType], output);
-        fputc('\n', output);
     }
     else if(token->type == T_STRING || token->type == T_IDENTIFIER)
     {
         fputs(", ", output);
         fputs((const char *)DStrStr(DStr), output);
-        fputc('\n', output);
     }
     else if(token->type == T_INTEGER)
     {
@@ -105,28 +103,52 @@ void DebugFPrintSymTableItem(FILE *output, SymTableItem_t *symtableItem)
     {
         fputs("SYM_VARIABLE, \"", output);
         fputs(symtableItem->key, output);
-        fprintf(output, "\", local = %d\n", symtableItem->local);
+        fprintf(output, "\", local = %d", symtableItem->local);
     }
     else
     {
         fputs("SYM_FUNCTION, \"", output);
         fputs(symtableItem->key, output);
-        fprintf(output, "\", parameterCount = %d, def = %d\n", symtableItem->parameterCount, symtableItem->def);
+        fprintf(output, "\", parameterCount = %d, def = %d", symtableItem->parameterCount, symtableItem->def);
     }
     fflush(output);
 }
 
 void DebugFPrintSymTable(FILE *output, SymTable_t *symtable)
 {
+    fputs("\n[Symtable]\n", output);
+    fputs("-+--------\n", output);
     for(int i = 0; i < symtable->size; i++)
     {
-        fprintf(output, "Idx: [%d]\n", i);
+        fprintf(output, " +-> Idx: [%d]\n", i);
+        if(i == symtable->size - 1)
+            fputs(          "     -+-------\n", output);
+        else
+            fputs(          " |   -+-------\n", output);
         SymTableItem_t *currentItem = symtable->table[i];
         while(currentItem != NULL)
         {
-            fputs("    ->", output);
+            if(symtable->table[i] == currentItem)
+            {
+                fputs(" |    |\n", output);
+                fputs(" |    +-> ", output);
+                
+            }
+            else
+            {
+                fputs(" |        |\n", output);
+                fputs(" |        +-> ", output);
+            }
             DebugFPrintSymTableItem(output, currentItem);
+            fputc('\n', output);
             currentItem = currentItem->NextPtr;
+            if(i == symtable->size - 1)
+                    fputs("  ", output);
+            else
+                fputs(" |", output);
+            if(currentItem != NULL)
+                fputs("        |", output);
+            fputc('\n', output);
         }
     }
     fflush(output);

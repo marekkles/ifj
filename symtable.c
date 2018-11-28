@@ -15,7 +15,6 @@ unsigned int HashCode(const char *str)
 SymTableItem_t *SymtableAllocateItem(size_t key_len)
 {
     SymTableItem_t *newItem;
-    printf("\n\nMalloc SymtableItem\n\n");
     if((newItem = malloc(sizeof(SymTableItem_t) + sizeof(char)*(key_len + 1))) == NULL)
         return NULL;
     return newItem;
@@ -31,7 +30,6 @@ void SymTableItemFree(SymTableItem_t *Item)
 */
 void SymTableInit(SymTable_t **SymTable, size_t size)
 {
-    printf("\n\nMalloc Symtable\n\n");
     if((*SymTable = malloc(sizeof(SymTable_t) + sizeof(SymTableItem_t *)*size)) == NULL)
     {
         return;
@@ -119,7 +117,7 @@ SymTableItem_t *SymTableAddItem(SymTable_t *SymTable, SymTableItem_t *Item)
         return Item;
     }
 }
-SymTableItem_t *SymTableAddFunction(SymTable_t *SymTable, char *str, bool parameterCount, bool defined)
+SymTableItem_t *SymTableAddFunction(SymTable_t *SymTable, char *str, int parameterCount, bool defined)
 {
     SymTableItem_t *newItem;
     newItem = SymtableAllocateItem(strlen(str));

@@ -20,7 +20,7 @@ static int GetTokenExpectKeyword(DStr_t **dstr, Token_t *token, TokenKewordType_
 static int Program(DStr_t **dstr, Token_t *token);
 static int ParameterList(DStr_t **dstr, Token_t *token);
 static int ParameterOther(DStr_t **dstr, Token_t *token);
-static int Term(Token_t *token);
+static int Term(DStr_t **dstr, Token_t *token);
 static int TermList(DStr_t **dstr, Token_t *token);
 static int TermOther(DStr_t **dstr, Token_t *token);
 static int CommandEnd(DStr_t **dstr, Token_t *token);
@@ -127,14 +127,19 @@ static int Program(DStr_t **dstr, Token_t *token)
         /*
         Test if there is no symbol with the same name
         */
-        if(SymTableFindItem(symtable, DStrStr(*dstr)) != NULL)
-            return PARSE_UNDEF_VAR;
-        //Add function label
+        
         SymTableItem_t *function;
-
-        if((function = SymTableAddFunction(symtable, DStrStr(*dstr), 0, 1)) == NULL)
-            return PARSE_INT_ERR;
-        DebugFPrintSymTable(stdout, symtable);
+        function = SymTableFindItem(symtable, DStrStr(*dstr));
+        if((function != NULL && function->type != SYM_FUNCTION) || (function != NULL && function->def == 1) )
+            return PARSE_UNDEF_VAR;
+        if(function == NULL)
+        {
+            function = SymTableAddFunction(symtable, DStrStr(*dstr), 0, 1);
+            if(function == NULL)
+                return PARSE_INT_ERR;
+        }
+            
+        
         SymTableSetLocalMode(symtable);
 
         if((return_value = GetTokenExpectOperation(dstr, token, TO_LBRACKET)) != PARSE_OK)
@@ -154,7 +159,13 @@ static int Program(DStr_t **dstr, Token_t *token)
         DebugFPuts("In: <Program> -> def id ( <ParameterList> ) EOL\n", output);
         if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
             return return_value;
-        function->parameterCount = parameter_count;
+
+        if(function->def == 1)
+            function->parameterCount = parameter_count;
+        else if(function->parameterCount != parameter_count)
+            return PARSE_PARAM_COUNT;
+        else
+            function->def = 1;
 
         in_function = 1;
 
@@ -165,9 +176,7 @@ static int Program(DStr_t **dstr, Token_t *token)
             return return_value;
         DebugFPuts("In: <Program> -> def id ( <ParameterList> ) EOL <Command> end\n", output);
 
-        DebugFPrintSymTable(stdout, symtable);
         SymTableUnSetLocalMode(symtable);
-        DebugFPrintSymTable(stdout, symtable);
 
         in_function = 0;
         function_definition = 0;
@@ -223,7 +232,7 @@ static int ParameterOther(DStr_t **dstr, Token_t *token)
     if((return_value = TokenExpectOperation(token, TO_COMMA)) == PARSE_OK)
     {
         parameter_count++;
-        DebugFPuts("    In: <ParameterOther> -> , ", output);
+        DebugFPuts("    In: <ParameterOther> -> , \n", output);
         if((return_value = GetTokenExpect(dstr, token, T_IDENTIFIER)) != PARSE_OK)
             return return_value;
         
@@ -233,7 +242,7 @@ static int ParameterOther(DStr_t **dstr, Token_t *token)
         if(SymTableAddVariable(symtable, DStrStr(*dstr)) == NULL)
             return PARSE_INT_ERR;
 
-        DebugFPuts("    In: <ParameterOther> -> , id", output);
+        DebugFPuts("    In: <ParameterOther> -> , id\n", output);
         if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
             return return_value;
         return ParameterOther(dstr, token);
@@ -268,10 +277,11 @@ static int ParameterList(DStr_t **dstr, Token_t *token)
         return PARSE_OK;
 }
 
-static int Term(Token_t *token)
+static int Term(DStr_t **dstr, Token_t *token)
 {
     int return_value = PARSE_OK;
-    DebugFPuts("      In: <Term>\n", output);
+    DebugFPuts("      In: <Term> <= ", output);
+    DebugFPrintToken(output, token, *dstr);
     if(TokenExpect(token, T_IDENTIFIER) == PARSE_OK)
     {
         //Check if is in symtable return error if not
@@ -308,7 +318,7 @@ static int TermOther(DStr_t **dstr, Token_t *token)
         DebugFPuts("      In: <TermOther> -> , \n", output);
         if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
             return return_value;
-        if((return_value = Term(token)) != PARSE_OK)
+        if((return_value = Term(dstr, token)) != PARSE_OK)
             return return_value;
         DebugFPuts("      In: <TermOther> -> , <Term>\n", output);
         if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
@@ -326,7 +336,7 @@ static int TermList(DStr_t **dstr, Token_t *token)
     DebugFPuts("    In: <TermList> <= ", output);
     DebugFPrintToken(output, token, *dstr);
     parameter_count = 0;
-    if((return_value = Term(token)) == PARSE_OK)
+    if((return_value = Term(dstr, token)) == PARSE_OK)
     {
         parameter_count++;
         DebugFPuts("    In: <TermList> -> <Term>\n", output);
@@ -341,6 +351,8 @@ static int TermList(DStr_t **dstr, Token_t *token)
 static int CommandEnd(DStr_t **dstr, Token_t *token)
 {
     int return_value = PARSE_OK;
+    DebugFPuts("    In: <CommandEnd> <=", output);
+    DebugFPrintToken(output, token, *dstr);
     if((return_value = TokenExpect(token, T_EOF)) == PARSE_OK)
     {
         return PARSE_OK;
@@ -436,6 +448,7 @@ static int Command(DStr_t **dstr, Token_t *token)
      //<Command> -> id = id ( <TermList> ) <CommandEnd>
      //<Command> -> id <TermList> <CommandEnd>
      //<Command> -> id ( <TermList> ) <CommandEnd>
+        DebugFPuts("  In: <Command> -> id\n", output);
         int is_var = 0;
         int is_function = 0;
         
@@ -455,16 +468,23 @@ static int Command(DStr_t **dstr, Token_t *token)
 
         if(TokenExpectOperation(&tempToken, TO_ASSIGNMENT) == PARSE_OK)
         {
-            SymTableItem_t *variable= IsVarInSymtable(DStrStr(*dstr));
+            DebugFPuts("  In: <Command> -> id =\n", output);
+            SymTableItem_t *variable= SymTableFindItem(symtable, DStrStr(*dstr));
             if(variable == NULL)
             {
-                variable = SymTableAddFunction(symtable, DStrStr(*dstr), -1, false);
+                variable = SymTableAddVariable(symtable, DStrStr(*dstr));
                 if(variable == NULL)
                 {
                     DStrFree(&tempDstr);
                     return PARSE_INT_ERR;
                 }
             }
+            else if(variable->type != SYM_VARIABLE)
+            {
+                DStrFree(&tempDstr);
+                return PARSE_UNDEF_VAR;
+            }
+
             returnVariable = variable;
             //Lookup another two
             if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
@@ -482,41 +502,52 @@ static int Command(DStr_t **dstr, Token_t *token)
         //Function calls
         if(TokenExpectOperation(&tempToken, TO_LBRACKET) == PARSE_OK || TokenExpect(&tempToken, T_IDENTIFIER) == PARSE_OK)
         {
-            SymTableItem_t *function = IsFunctionInSymtable(DStrStr(*dstr)); 
-            if(in_function &&  function == NULL)
+            DebugFPuts("  In: <Command> -> id  [= id, ] [( , ' ']\n", output);
+            SymTableItem_t *function = SymTableFindItem(symtable, DStrStr(*dstr)); 
+            if(function == NULL && !in_function)
             {
-                function = SymTableAddFunction(symtable, DStrStr(*dstr), -1, false);
+                DStrFree(&tempDstr);
+                return PARSE_UNDEF_VAR;
+            }
+            else if(function == NULL && in_function)
+            {   
+                function = SymTableAddFunction(symtable, DStrStr(*dstr), -1, 0);
                 if(function == NULL)
                 {
                     DStrFree(&tempDstr);
                     return PARSE_INT_ERR;
                 }
             }
-
             DStrReplace(dstr, DStrStr(tempDstr));
             *token = tempToken;
             DStrFree(&tempDstr);
 
-            if(TokenExpectOperation(token, TO_LBRACKET))
+            if(TokenExpectOperation(token, TO_LBRACKET) == PARSE_OK)
             {
                 if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
                     return return_value;
                 if((return_value = TermList(dstr, token)) != PARSE_OK)
                     return return_value;
-                if(function->parameterCount == -1 && function->def == false)
-                    function->parameterCount = parameter_count;
-                if(TokenExpectOperation(&tempToken, TO_RBRACKET) != PARSE_OK)
+                DebugFPuts("  In: <Command> -> id ( <TermList>\n", output);
+                if((return_value = TokenExpectOperation(token, TO_RBRACKET)) != PARSE_OK)
+                    return return_value;
+                DebugFPuts("  In: <Command> -> id ( <TermList> )\n", output);
+                if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
                     return return_value;
             }
             else
             {
                 if((return_value = TermList(dstr, token)) != PARSE_OK)
                     return return_value;
-                if(function->parameterCount == -1 && function->def == false)
-                    function->parameterCount = parameter_count;
+                DebugFPuts("  In: <Command> -> id <TermList>\n", output);
             }
+            
+            if(function->def == 0 && function->parameterCount == -1)
+                function->parameterCount = parameter_count;
+            else if(function->parameterCount != parameter_count)
+                return PARSE_PARAM_COUNT;
+                    
         }
-        //If nothing else then it is expression
         else if((return_value = Expression(dstr, token, &tempDstr, &tempToken)) != PARSE_OK)
         {
             DStrFree(&tempDstr);
@@ -573,7 +604,6 @@ int Parse(void)
     }
 
     DStrFree(&dstr);
-    DebugFPrintSymTable(stdout, symtable);
     SymTableDispose(&symtable);
     return return_value;
 }

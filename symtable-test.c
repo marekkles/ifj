@@ -46,6 +46,9 @@ int main(int argc, char const *argv[])
     DebugFPuts("Add: i\n", stdout);
     SymTableAddVariable(symtable, "j");
     DebugFPuts("Add: j\n", stdout);
+
+    DebugFPrintSymTable(stdout, symtable);
+
     SymTableUnSetLocalMode(symtable);
 
     DebugFPrintSymTable(stdout, symtable);
