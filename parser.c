@@ -756,6 +756,9 @@ static int Command(DStr_t **dstr, Token_t *token)
 static int Expression(DStr_t **dstr, Token_t *token, DStr_t **nextDstr, Token_t *nextToken)
 {
     DebugFPuts("    In: <Expression> <= ", output);
+
+    //Let's go 
+
     DebugFPrintToken(output, token, *dstr);
     if(
         TokenExpect(token, T_IDENTIFIER) == PARSE_OK || 
