@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=
+CFLAGS=-ggdb3
 TARGETS=main
 TESTS=fsm-test dstr-test hash-test parser-test symtable-test error-test symbolstack-test
 all: ${TARGETS}

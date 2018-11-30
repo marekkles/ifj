@@ -138,6 +138,7 @@ SymTableItem_t *SymTableAddVariable(SymTable_t *SymTable, char *str)
     newItem->type = SYM_VARIABLE;
     strcpy(newItem->key, str);
     newItem->local = SymTable->localMode;
+    newItem->variableType = VAR_UNDEFINED;
     return SymTableAddItem(SymTable, newItem);
 }
 

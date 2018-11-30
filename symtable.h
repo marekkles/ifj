@@ -8,11 +8,19 @@
 #define SYMTABLE_H
 
 typedef enum {SYM_FUNCTION, SYM_VARIABLE} SymTableSymbolType_t;
-
+typedef enum {
+    VAR_INT,
+    VAR_DOUBLE,
+    VAR_STRING,
+    VAR_NIL,
+    VAR_UNDEFINED
+}SymTableVariableType_t;
 typedef struct SymTableItem_s {
     bool local;
     bool def;
     int parameterCount;
+    SymTableVariableType_t variableType;
+
     SymTableSymbolType_t type;
     struct SymTableItem_s *NextPtr;
     char key[];

@@ -7,6 +7,14 @@ int in_function = 0;
 static int function_definition = 0;
 static int parameter_count = 0;
 
+enum {
+    FUN_INPUTS,
+    FUN_INPUTI,
+    FUN_INPUTF,
+    FUN_PRINT,
+    FUN_LENGTH
+};
+
 static SymTable_t *symtable;
 
 
@@ -26,6 +34,164 @@ static int TermOther(DStr_t **dstr, Token_t *token);
 static int CommandEnd(DStr_t **dstr, Token_t *token);
 static int Command(DStr_t **dstr, Token_t *token);
 static int Expression(DStr_t **dstr, Token_t *token, DStr_t **nextDstr,Token_t *nextToken);
+
+static int ExpectTerm(DStr_t **dstr, Token_t *token)
+{
+    int return_value = PARSE_OK;
+    DebugFPuts("      In: <ExpectTerm> <= ", output);
+    DebugFPrintToken(output, token, *dstr);
+    if(TokenExpect(token, T_IDENTIFIER) == PARSE_OK)
+        return PARSE_OK;
+    else if(TokenExpect(token, T_INTEGER) == PARSE_OK)
+        return PARSE_OK;
+    else if(TokenExpect(token, T_DOUBLE) == PARSE_OK)
+        return PARSE_OK;
+    else if(TokenExpect(token, T_STRING) == PARSE_OK)
+        return PARSE_OK;
+    else
+        return PARSE_PARAM_COUNT;
+}
+
+static int IsInternalInlineFunction(DStr_t **dstr, Token_t *token)
+{
+    if(token->type != T_IDENTIFIER)
+        return -1;
+    if(strcmp("inputs", DStrStr(*dstr)) == 0)
+        return FUN_INPUTS;
+    else if (strcmp("inputi", DStrStr(*dstr)) == 0)
+        return FUN_INPUTI;
+    else if (strcmp("inputf", DStrStr(*dstr)) == 0)
+        return FUN_INPUTF;
+    else if (strcmp("print", DStrStr(*dstr)) == 0)
+        return FUN_PRINT;
+    else if (strcmp("length", DStrStr(*dstr)) == 0)
+        return FUN_LENGTH;
+    else
+        return -1;
+}
+
+static int PrintTerm(DStr_t **dstr, Token_t *token)
+{
+    int return_value = PARSE_OK;
+    DebugFPuts("      In: <PrintTerm> <= ", output);
+    DebugFPrintToken(output, token, *dstr);
+    if(TokenExpect(token, T_IDENTIFIER) == PARSE_OK)
+    {
+        //Check if is in symtable return error if not
+        //Add to function call
+        return PARSE_OK; 
+    }
+    else if(TokenExpect(token, T_INTEGER) == PARSE_OK)
+    {
+        //Add to function call
+        return PARSE_OK;
+    }
+    else if(TokenExpect(token, T_DOUBLE) == PARSE_OK)
+    {
+        //Add to function call
+        return PARSE_OK;
+    }
+    else if(TokenExpect(token, T_STRING) == PARSE_OK)
+    {
+        //Add to function call
+        return PARSE_OK;
+    }
+    else
+        return PARSE_SYN_ERR;
+}
+
+static int PrintTermOther(DStr_t **dstr, Token_t *token)
+{
+    int return_value = PARSE_OK;
+    DebugFPuts("      In: <PrintTermOther> <= ", output);
+    DebugFPrintToken(output, token, *dstr);
+    if((return_value = TokenExpectOperation(token, TO_COMMA)) == PARSE_OK)
+    {
+        parameter_count++;
+        DebugFPuts("      In: <PrintTermOther> -> , \n", output);
+        if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
+            return return_value;
+        if((return_value = PrintTerm(dstr, token)) != PARSE_OK)
+            return return_value;
+        DebugFPuts("      In: <PrintTermOther> -> , <PrintTerm>\n", output);
+        if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
+            return return_value;
+        
+        return PrintTermOther(dstr, token);
+    }
+    else
+        return PARSE_OK;
+}
+
+static int PrintTermList(DStr_t **dstr, Token_t *token)
+{
+    int return_value = PARSE_OK;
+    DebugFPuts("    In: <PrintTermList> <= ", output);
+    DebugFPrintToken(output, token, *dstr);
+    parameter_count = 0;
+    if((return_value = PrintTerm(dstr, token)) == PARSE_OK)
+    {
+        parameter_count++;
+        DebugFPuts("    In: <PrintTermList> -> <PrintTerm>\n", output);
+        if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
+            return return_value;
+        return PrintTermOther(dstr, token);
+    }
+    else
+        return PARSE_OK;
+} 
+
+static int ParseInternalInlineFunction(int iternalInlineFunctionNumber, SymTableItem_t *returnVariable, DStr_t ** dstr, Token_t * token)
+{
+    int return_value = PARSE_OK;
+    
+    int uses_brackets = 0;
+    if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
+        return return_value;
+    if(TokenExpectOperation(token, TO_LBRACKET) == PARSE_OK)
+    {
+        uses_brackets = 1;
+        if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
+            return return_value;
+    }
+
+    switch(iternalInlineFunctionNumber) {
+        case FUN_INPUTS:
+        {
+            break;
+        }
+        case FUN_INPUTI:
+        {
+            break;
+        }
+        case FUN_INPUTF:
+        {
+            break;
+        }
+        case FUN_PRINT:
+        {
+            if((return_value = PrintTermList(dstr, token)) != PARSE_OK)
+                return return_value;
+            break;
+        }
+        case FUN_LENGTH:
+        {
+            if((return_value = ExpectTerm(dstr, token)) != PARSE_OK)
+                return return_value;
+            if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
+                return return_value;
+            break;
+        }
+    }
+    if(uses_brackets == 1)
+    {
+        if((return_value = TokenExpectOperation(token, TO_RBRACKET)) != PARSE_OK)
+            return return_value;
+        if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
+            return return_value;
+    }
+    return CommandEnd(dstr, token);
+}
 
 static SymTableItem_t * IsFunctionInSymtable(char *key)
 {
@@ -141,6 +307,7 @@ static int Program(DStr_t **dstr, Token_t *token)
             
         
         SymTableSetLocalMode(symtable);
+        SymTableAddVariable(symtable, "%%return");
 
         if((return_value = GetTokenExpectOperation(dstr, token, TO_LBRACKET)) != PARSE_OK)
             return return_value;
@@ -399,6 +566,8 @@ static int Command(DStr_t **dstr, Token_t *token)
         if((return_value = GetTokenExpect(dstr, token, T_EOL)) != PARSE_OK)
             return return_value;
         DebugFPuts("  In: <Command> -> if <expression> then EOL <Command> else EOL\n", output);
+        if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
+            return return_value;
         if((return_value = Command(dstr, token)) != PARSE_OK)
             return return_value;
         DebugFPuts("  In: <Command> -> if <expression> then EOL <Command> else EOL <Command>\n", output);
@@ -452,6 +621,15 @@ static int Command(DStr_t **dstr, Token_t *token)
         int is_var = 0;
         int is_function = 0;
         
+        SymTableItem_t *returnVariable = SymTableFindItem(symtable, "%%return");
+
+        //Test for internal functions
+        int iternal_function_number = -1;
+        if((iternal_function_number = IsInternalInlineFunction(dstr, token)) != -1)
+        {
+            return ParseInternalInlineFunction(iternal_function_number, returnVariable, dstr, token);
+        }
+
         //Lookup one
         Token_t tempToken;
         DStr_t *tempDstr;
@@ -463,8 +641,6 @@ static int Command(DStr_t **dstr, Token_t *token)
             DStrFree(&tempDstr);
             return return_value;
         }
-
-        SymTableItem_t *returnVariable = NULL;
 
         if(TokenExpectOperation(&tempToken, TO_ASSIGNMENT) == PARSE_OK)
         {
@@ -492,6 +668,15 @@ static int Command(DStr_t **dstr, Token_t *token)
                 DStrFree(&tempDstr);
                 return return_value;
             }
+
+            //Test for internal function call
+            if((iternal_function_number = IsInternalInlineFunction(dstr, token)) != -1)
+            {
+                DStrFree(&tempDstr);
+                return ParseInternalInlineFunction(iternal_function_number, returnVariable, dstr, token);
+            }
+
+            //Lookup other one
             if((return_value = GetTokenParser(&tempDstr, &tempToken)) != PARSE_OK)
             {
                 DStrFree(&tempDstr);
@@ -500,7 +685,7 @@ static int Command(DStr_t **dstr, Token_t *token)
         }
 
         //Function calls
-        if(TokenExpectOperation(&tempToken, TO_LBRACKET) == PARSE_OK || TokenExpect(&tempToken, T_IDENTIFIER) == PARSE_OK)
+        if(TokenExpectOperation(&tempToken, TO_LBRACKET) == PARSE_OK || ExpectTerm(&tempDstr, &tempToken) == PARSE_OK)
         {
             DebugFPuts("  In: <Command> -> id  [= id, ] [( , ' ']\n", output);
             SymTableItem_t *function = SymTableFindItem(symtable, DStrStr(*dstr)); 
@@ -553,6 +738,13 @@ static int Command(DStr_t **dstr, Token_t *token)
             DStrFree(&tempDstr);
             return return_value;
         }
+        DStrFree(&tempDstr);
+        return CommandEnd(dstr, token);
+    }
+    else if(ExpectTerm(dstr, token) == PARSE_OK || TokenExpect(token, T_OPERATION) == PARSE_OK)
+    {
+        if((return_value = Expression(dstr, token, NULL, NULL)) != PARSE_OK)
+            return return_value;
         return CommandEnd(dstr, token);
     }
     else
@@ -574,13 +766,17 @@ static int Expression(DStr_t **dstr, Token_t *token, DStr_t **nextDstr, Token_t 
        )
     {
         int return_value;
-        if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
-            return return_value;
-        if(nextToken != NULL)
+        if(nextToken != NULL && nextDstr != NULL)
         {
             token->type = nextToken->type;
             token->intValue = nextToken->intValue;
+            DStrReplace(dstr, DStrStr(*nextDstr));
         }
+        else if((nextToken != NULL && nextDstr == NULL) || (nextToken == NULL && nextDstr != NULL))
+            return PARSE_INT_ERR;
+        else if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
+            return return_value;
+       
         return Expression(dstr, token, NULL, NULL);
     }
     else

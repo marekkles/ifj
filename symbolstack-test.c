@@ -9,7 +9,7 @@ int main(int argc, char const *argv[])
     Init_SStack(&sstack, 50);
     DebugFPrintSStack(stdout, sstack);
 
-    sstackItem.type = STACK_ITEM_OPERATION;
+    sstackItem.type = STACK_ITEM_GREATER_EQUAL_THAN;
     sstackItem.operationType = TO_ADD;
     Push_SStack(&sstack, &sstackItem);
 
@@ -21,11 +21,11 @@ int main(int argc, char const *argv[])
     sstackItem.operationType = 42;
     Push_SStack(&sstack, &sstackItem);
 
-    sstackItem.type = STACK_ITEM_OPERATION;
+    sstackItem.type = STACK_ITEM_GREATER_EQUAL_THAN;
     sstackItem.operationType = TO_LBRACKET;
     Push_SStack(&sstack, &sstackItem);
 
-    sstackItem.type = STACK_ITEM_OPERATION;
+    sstackItem.type = STACK_ITEM_GREATER_EQUAL_THAN;
     sstackItem.operationType = TO_ADD;
     Push_SStack(&sstack, &sstackItem);
 

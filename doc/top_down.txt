@@ -23,6 +23,16 @@
 <TermOther> -> , <Term> <TermOther>
 <TermOther> -> ε
 
+<PrintTerm> -> id
+<PrintTerm> -> int
+<PrintTerm> -> double
+<PrintTerm> -> string
+
+<PrintTermOther> -> , <PrintTerm> <PrintTermOther>
+<PrintTermOther> -> ε
+
+<PrintTermList> -> <PrintTerm> <PrintTermOther>
+
 <CommandEnd> -> EOL <Command>
 <CommandEnd> -> EOF
 
@@ -31,8 +41,8 @@
 <Command> -> EOL <Command>
 <Command> -> EOF
 <Command> -> nil <CommandEnd>
-<Command> -> print <TermList> <CommandEnd>
-<Command> -> print (<TermList>) <CommandEnd>
+<Command> -> print <PrintTermList> <CommandEnd>
+<Command> -> print (<PrintTermList>) <CommandEnd>
 <Command> -> id ( <TermList> ) <CommandEnd>
 <Command> -> id <TermList> <CommandEnd>
 <Command> -> id = id (<TermList>) <CommandEnd>

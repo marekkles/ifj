@@ -157,10 +157,22 @@ void DebugFPrintSymTable(FILE *output, SymTable_t *symtable)
 void DebugFPrintSStackItem(FILE *output, SStackItem_t *sstackItem)
 {
     const char *stackItemTypesNames[] = {
-        "STACK_ITEM_SYMBOL",
+        "STACK_ITEM_VAR",
         "STACK_ITEM_INTEGER",
         "STACK_ITEM_DOUBLE",
-        "STACK_ITEM_OPERATION"
+        "STACK_ITEM_LESSER_THAN", 
+        "STACK_ITEM_GREATER_THAN", 
+        "STACK_ITEM_EQUAL_TO", 
+        "STACK_ITEM_NOT_EQUAL_TO",
+        "STACK_ITEM_GREATER_EQUAL_THAN", 
+        "STACK_ITEM_LESSER_EQUAL_THAN",
+        "STACK_ITEM_MULTIPLY", 
+        "STACK_ITEM_DIVIDE", 
+        "STACK_ITEM_ADD", 
+        "STACK_ITEM_SUBTRACT", 
+        "STACK_ITEM_LBRACKET",
+        "STACK_ITEM_RBRACKET",
+        "STACK_ITEM_END"
     };
     int intValue;
 		double doubleValue;
@@ -172,11 +184,6 @@ void DebugFPrintSStackItem(FILE *output, SStackItem_t *sstackItem)
         fprintf(output, ", %d", sstackItem->intValue);
     else if(sstackItem->type == STACK_ITEM_DOUBLE)
         fprintf(output, ", %lf", sstackItem->doubleValue);
-    else if(sstackItem->type == STACK_ITEM_OPERATION)
-    {
-        fputs(", ", output);
-        fputs(TokenOperationTypesNames[sstackItem->operationType], output);
-    }
     fputc('\n', output);
     return;
 }

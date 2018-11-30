@@ -19,5 +19,7 @@ int main(int argc, char const *argv[])
         return -1;
     }
 
-    return Parse();
+    int return_value = Parse();
+    fclose(input);
+    return return_value;
 }
