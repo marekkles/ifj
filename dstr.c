@@ -44,11 +44,11 @@ int DStrAddChar(DStr_t **DStr, char c)
     {
         DStr_t *DStrNew;
         size_t new_size = sizeof(DStr_t) + (*DStr)->size + sizeof(char)*min_chunk;
-        DebugFPrintf(stdout, "Dynamic string reallocation from: %dB to %dB\n", sizeof(DStr_t) + (*DStr)->size, new_size);
+        //DebugFPrintf(stdout, "Dynamic string reallocation from: %dB to %dB\n", sizeof(DStr_t) + (*DStr)->size, new_size);
         DStrNew = realloc(*DStr, new_size);
         if(DStrNew == NULL)
         {
-            DebugFPuts("Dynamic string reallocation FAILED\n", stdout);
+            //DebugFPuts("Dynamic string reallocation FAILED\n", stdout);
             return 0;
         }    
         *DStr = DStrNew;
@@ -75,12 +75,12 @@ int DStrCat(DStr_t **DStr, const char *str)
         size_t expansion = min_expansion + (50 - min_expansion%50);
         size_t new_size = sizeof(DStr_t) + (*DStr)->size + sizeof(char)*expansion;
 
-        DebugFPrintf(stdout, "Dynamic string reallocation from: %dB to %dB\n", sizeof(DStr_t) + (*DStr)->size, new_size);
+        //DebugFPrintf(stdout, "Dynamic string reallocation from: %dB to %dB\n", sizeof(DStr_t) + (*DStr)->size, new_size);
 
         DStrNew = realloc(*DStr, new_size);
         if(DStrNew == NULL)
         {
-            DebugFPuts("Dynamic string reallocation FAILED\n", stdout);
+            //DebugFPuts("Dynamic string reallocation FAILED\n", stdout);
             return 0;
         }    
         *DStr = DStrNew;

@@ -11,6 +11,10 @@
 
 #define DSTR_H
 
+
+#define DSTR_DEFAULT_SIZE 50
+#define DSTR_REALOCATION_SIZE 50
+
 typedef struct {
     size_t size;
     size_t strlen;

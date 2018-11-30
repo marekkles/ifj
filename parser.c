@@ -755,6 +755,18 @@ static int Command(DStr_t **dstr, Token_t *token)
 
 static int Expression(DStr_t **dstr, Token_t *token, DStr_t **nextDstr, Token_t *nextToken)
 {
+    typedef enum {
+        PRE_LT, // <
+        PRE_GT, // >
+        PRE_EQ, // =
+        PRE_NT  // blank 
+    } ExpressionPrecedence_t;
+
+    const ExpressionPrecedence_t precedenceTable[10][10] = 
+    {
+
+    };
+
     DebugFPuts("    In: <Expression> <= ", output);
 
     //Let's go 

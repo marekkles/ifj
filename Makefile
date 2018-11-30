@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-ggdb3
 TARGETS=main
-TESTS=fsm-test dstr-test hash-test parser-test symtable-test error-test symbolstack-test
+TESTS=fsm-test dstr-test hash-test parser-test symtable-test error-test symbolstack-test codegen-test
 all: ${TARGETS}
 
 debug: CFLAGS += -DDEBUG -ggdb
@@ -18,6 +18,7 @@ parser-test: parser-test.o debug.o dstr.o parser.o fsm.o symtable.o
 symtable-test: symtable-test.o debug.o dstr.o symtable.o
 error-test: error-test.o error.o
 symbolstack-test: symbolstack-test.o debug.o symbolstack.o symtable.o dstr.o
+codegen-test: codegen-test.o codegen.o dstr.o debug.o
 
 main: main.o fsm.o dstr.o debug.o
 

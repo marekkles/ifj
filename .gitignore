@@ -74,3 +74,5 @@ main
 examples/*
 
 valgrind-out.txt
+ic18int
+codegen-test
