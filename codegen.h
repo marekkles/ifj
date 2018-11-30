@@ -81,22 +81,21 @@ typedef struct {
     int ifCount;
 } CodeInstructionList_t;
 
+int CodeInitialize(void);
+void CodeFinalize(void);
 
 int CodeAddFunctionStart(const char *label);
 int CodeAddFunctionEnd(void);
 int CodeAddFunctionParameter(const char *parameterName);
-int CodeInitialize(void);
-void CodeFinalize(void);
-
 
 int CodeAddString(const char *str);
 int CodeAddInt(int intValue);
 int CodeAddDouble(double doubleValue);
 int CodeAddVariable(const char *str);
 
-
 int CodeAddInstruction(CodeInstructions_t instructionCode);
 int CodeAddLabel(const char *labelName);
+
 int CodeAddFunctionCallStart();
 int CodeAddFunctionCallParameter();
 int CodeAddFunctionCallString(const char *str);
@@ -104,6 +103,18 @@ int CodeAddFunctionCallInt(int intValue);
 int CodeAddFunctionCallDouble(double doubleValue);
 int CodeAddFunctionCallVariable(const char *str);
 int CodeAddFunctionCall(const char *functionName);
+
+int CodeGetUniqueWhile();
+int CodeGetUniqueIf();
+
+int CodeAddWhileStart(int uniqueWhileNumber);
+int CodeAddWhileBody(int uniqueWhileNumber);
+int CodeAddWhileEnd(int uniqueWhileNumber);
+
+int CodeAddIfStart(int uniqueIfNumber);
+int CodeAddIfElse(int uniqueIfNumber);
+int CodeAddIfEnd(int uniqueIfNumber);
+
 int CodeAddTextToBody(const char *text);
 int CodeAddTextToVariables(const char *text);
 int CodeAddInstruction(CodeInstructions_t instructionCode);

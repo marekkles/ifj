@@ -5,6 +5,7 @@
 #include "dstr.h"
 #include "fsm.h"
 #include "symtable.h"
+#include "codegen.h"
 
 #ifndef PARSER_H
 

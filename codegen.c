@@ -72,6 +72,8 @@ int CodeInitialize(void)
 }
 void CodeFinalize(void)
 {
+    if(instructionList == NULL)
+        return;
     fputs(DStrStr(instructionList->mainVariableList), stdout);
     fputs("\n", stdout);
     fputs(DStrStr(instructionList->mainBody), stdout);
@@ -218,6 +220,97 @@ int CodeAddFunctionCall(const char *functionName)
         return return_value;
     return return_value;
 }
+
+int CodeGetUniqueWhile()
+{
+    instructionList->whileCount++;
+    return instructionList->whileCount;
+}
+int CodeGetUniqueIf()
+{
+    instructionList->ifCount++;
+    return instructionList->ifCount;
+}
+
+int CodeAddWhileStart(int uniqueWhileNumber)
+{
+    int return_value = PARSE_OK;
+    char int_to_string[21] = {0,};
+    sprintf(int_to_string, "%d", uniqueWhileNumber);
+
+    if((return_value = CodeAddTextToBody("\n#While Loop\nLABEL $$while")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(int_to_string)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody("start")) != PARSE_OK)
+        return return_value;
+    return return_value;
+    
+}
+int CodeAddWhileBody(int uniqueWhileNumber)
+{
+    int return_value;
+    if((return_value = CodeAddTextToBody("\n#While Loop Body")) != PARSE_OK)
+        return return_value;
+    return return_value;
+}
+int CodeAddWhileEnd(int uniqueWhileNumber)
+{
+    int return_value = PARSE_OK;
+    char int_to_string[21] = {0,};
+    sprintf(int_to_string, "%d", uniqueWhileNumber);
+    if((return_value = CodeAddTextToBody("\nJUMP $$while")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(int_to_string)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody("start")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody("\nLABEL $$while")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(int_to_string)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody("end")) != PARSE_OK)
+        return return_value;
+    return return_value;
+}
+
+int CodeAddIfStart(int uniqueIfNumber)
+{
+    int return_value = PARSE_OK;
+
+    if((return_value = CodeAddTextToBody("\n#If Start")) != PARSE_OK)
+        return return_value;
+    return return_value;
+}
+int CodeAddIfElse(int uniqueIfNumber)
+{
+    int return_value = PARSE_OK;
+    char int_to_string[21] = {0,};
+    sprintf(int_to_string, "%d", uniqueIfNumber);
+
+    if((return_value = CodeAddTextToBody("\n#If Else\nLABEL $$if")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(int_to_string)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody("else")) != PARSE_OK)
+        return return_value;
+    return return_value;
+}
+int CodeAddIfEnd(int uniqueIfNumber)
+{
+    int return_value = PARSE_OK;
+    char int_to_string[21] = {0,};
+    sprintf(int_to_string, "%d", uniqueIfNumber);
+
+    if((return_value = CodeAddTextToBody("\n#If End\nLABEL $$if")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(int_to_string)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody("end")) != PARSE_OK)
+        return return_value;
+    return return_value;
+}
+
 
 int CodeAddTextToBody(const char *text)
 {

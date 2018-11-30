@@ -20,3 +20,5 @@ do
     percentage=`bc <<<$expression`
     echo $name $percentage%
 done
+echo
+echo Total LOC $TOTAL_LOC
