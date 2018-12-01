@@ -1,0 +1,88 @@
+.IFJcode18
+JUMP $$main
+
+LABEL $substr
+PUSHFRAME
+
+DEFVAR LF@%return
+MOVE LF@%return string@
+DEFVAR LF@%condition
+MOVE LF@%condition nil@nil
+
+DEFVAR LF@s
+MOVE LF@s LF@%1
+DEFVAR LF@i
+MOVE LF@i LF@%2
+DEFVAR LF@n
+MOVE LF@n LF@%3
+
+#Get length of string
+DEFVAR LF@stringLength
+STRLEN LF@stringLength LF@s
+
+DEFVAR LF@lastIndex
+MOVE LF@lastIndex LF@i
+
+ADD LF@lastIndex LF@lastIndex LF@n
+
+#Check if index is in range
+LT LF@%condition LF@i int@0
+JUMPIFEQ $$substrErr  LF@%condition bool@true
+LT LF@%condition LF@i LF@stringLength
+JUMPIFEQ $$substrErr  LF@%condition bool@false
+LT LF@%condition LF@n int@0
+JUMPIFEQ $$substrErr  LF@%condition bool@true
+
+#Main loop
+DEFVAR LF@iterator
+MOVE LF@iterator LF@i
+DEFVAR LF@currentChar
+
+LABEL $$substrLoopStart
+
+#End loop if iterator >= stringLength || iterator >= lastIndex 
+LT LF@%condition LF@iterator LF@stringLength
+JUMPIFEQ $$substrReturn LF@%condition bool@false
+LT LF@%condition LF@iterator LF@lastIndex
+JUMPIFEQ $$substrReturn LF@%condition bool@false
+
+#Concatenate with char at index iterator
+GETCHAR LF@currentChar LF@s LF@iterator
+CONCAT LF@%return LF@%return LF@currentChar
+
+#Increment iterator
+ADD LF@iterator LF@iterator int@1
+
+JUMP $$substrLoopStart
+LABEL $$substrReturn
+POPFRAME
+RETURN
+
+LABEL $$substrErr
+MOVE LF@%return nil@nil
+POPFRAME
+RETURN
+
+
+LABEL $$main
+CREATEFRAME
+PUSHFRAME
+
+DEFVAR LF@str
+DEFVAR LF@index
+DEFVAR LF@number
+
+MOVE LF@str string@Macka\020Mnau
+MOVE LF@index int@0
+MOVE LF@number int@4
+
+CREATEFRAME 
+DEFVAR TF@%1
+MOVE TF@%1 LF@str
+DEFVAR TF@%2
+MOVE TF@%2 LF@index
+DEFVAR TF@%3
+MOVE TF@%3 LF@number
+CALL $substr
+
+WRITE TF@%return
