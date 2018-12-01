@@ -784,6 +784,7 @@ int GetToken(DStr_t **DStr, Token_t *token)
                 else if(read_char == '!' || read_char == '?')
                 {
                     state = S_FUNCTION;
+                    stop = 1;
                 }
                 else
                 {
