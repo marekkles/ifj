@@ -7,7 +7,7 @@ FILE *output;
 
 int main(int argc, char const *argv[])
 {
-    output = stdout;
+    output = stderr;
     if(argc != 2)
     {
         DebugFPuts("Program needs 2 arguments\n", output);
