@@ -75,25 +75,33 @@ static int PrintTerm(DStr_t **dstr, Token_t *token)
     int return_value = PARSE_OK;
     //DebugFPuts("      In: <PrintTerm> <= ", output);
     //DebugFPrintToken(output, token, *dstr);
+    if((return_value = CodeAddInstruction(WRITE)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+
     if(TokenExpect(token, T_IDENTIFIER) == PARSE_OK)
     {
-        //Check if is in symtable return error if not
-        //Add to function call
+        if((return_value = CodeAddVariable(DStrStr(*dstr))) != PARSE_OK)
+            return return_value;
         return PARSE_OK; 
     }
     else if(TokenExpect(token, T_INTEGER) == PARSE_OK)
     {
-        //Add to function call
+        if((return_value = CodeAddInt(token->intValue)) != PARSE_OK)
+            return return_value;
         return PARSE_OK;
     }
     else if(TokenExpect(token, T_DOUBLE) == PARSE_OK)
     {
-        //Add to function call
+        if((return_value = CodeAddDouble(token->doubleValue)) != PARSE_OK)
+            return return_value;
         return PARSE_OK;
     }
     else if(TokenExpect(token, T_STRING) == PARSE_OK)
     {
-        //Add to function call
+        if((return_value = CodeAddString(DStrStr(*dstr))) != PARSE_OK)
+            return return_value;
         return PARSE_OK;
     }
     else
@@ -310,7 +318,7 @@ static int Program(DStr_t **dstr, Token_t *token)
         if((return_value = CodeAddFunctionStart(function->key)) != PARSE_OK)
             return return_value;
         SymTableSetLocalMode(symtable);
-        SymTableAddVariable(symtable, "%%return");
+        SymTableAddVariable(symtable, "%return");
 
         if((return_value = GetTokenExpectOperation(dstr, token, TO_LBRACKET)) != PARSE_OK)
             return return_value;
@@ -465,23 +473,26 @@ static int Term(DStr_t **dstr, Token_t *token)
     //DebugFPrintToken(output, token, *dstr);
     if(TokenExpect(token, T_IDENTIFIER) == PARSE_OK)
     {
-        //Check if is in symtable return error if not
-        //Add to function call
+        if((return_value = CodeAddFunctionCallParameter(DStrStr(*dstr))) != PARSE_OK)
+            return return_value;
         return PARSE_OK; 
     }
     else if(TokenExpect(token, T_INTEGER) == PARSE_OK)
     {
-        //Add to function call
+        if((return_value = CodeAddFunctionCallInt(token->intValue)) != PARSE_OK)
+            return return_value;
         return PARSE_OK;
     }
     else if(TokenExpect(token, T_DOUBLE) == PARSE_OK)
     {
-        //Add to function call
+        if((return_value = CodeAddFunctionCallInt(token->doubleValue)) != PARSE_OK)
+            return return_value;
         return PARSE_OK;
     }
     else if(TokenExpect(token, T_STRING) == PARSE_OK)
     {
-        //Add to function call
+        if((return_value = CodeAddFunctionCallString(DStrStr(*dstr))) != PARSE_OK)
+            return return_value;
         return PARSE_OK;
     }
     else
@@ -632,8 +643,6 @@ static int Command(DStr_t **dstr, Token_t *token)
      //<Command> -> id <TermList> <CommandEnd>
      //<Command> -> id ( <TermList> ) <CommandEnd>
         //DebugFPuts("  In: <Command> -> id\n", output);
-        int is_var = 0;
-        int is_function = 0;
         
         SymTableItem_t *returnVariable = SymTableFindItem(symtable, "%%return");
 
@@ -703,6 +712,7 @@ static int Command(DStr_t **dstr, Token_t *token)
         {
             //DebugFPuts("  In: <Command> -> id  [= id, ] [( , ' ']\n", output);
             SymTableItem_t *function = SymTableFindItem(symtable, DStrStr(*dstr)); 
+
             if(function == NULL && !in_function)
             {
                 DStrFree(&tempDstr);
@@ -720,6 +730,10 @@ static int Command(DStr_t **dstr, Token_t *token)
             DStrReplace(dstr, DStrStr(tempDstr));
             *token = tempToken;
             DStrFree(&tempDstr);
+
+            //Add create frame start of function call
+            if((return_value = CodeAddFunctionCallStart()) != PARSE_OK)
+                return return_value;
 
             if(TokenExpectOperation(token, TO_LBRACKET) == PARSE_OK)
             {
@@ -740,6 +754,9 @@ static int Command(DStr_t **dstr, Token_t *token)
                     return return_value;
                 //DebugFPuts("  In: <Command> -> id <TermList>\n", output);
             }
+
+            if((return_value = CodeAddFunctionCall(function->key)) != PARSE_OK)
+                return return_value;
             
             if(function->def == 0 && function->parameterCount == -1)
                 function->parameterCount = parameter_count;
