@@ -48,35 +48,24 @@ void SymTableSetLocalMode(SymTable_t *SymTable)
 void SymTableUnSetLocalMode(SymTable_t *SymTable)
 {
     SymTable->localMode = 0;
-    SymTableItem_t *currentItem, *tempItem;
-    bool beginning;
+    SymTableItem_t **currentItem;
+    SymTableItem_t *tempItem;
+
     for(int i = 0; i < SymTable->size; i++)
     {
-        currentItem = SymTable->table[i];
-        beginning = 1;
-        while(currentItem != NULL)
+        currentItem = &(SymTable->table[i]);
+        while(*currentItem != NULL)
         {
-            if(beginning == 1 && currentItem->type == SYM_VARIABLE && currentItem->local == true)
+            if((*currentItem)->type == SYM_VARIABLE && (*currentItem)->local == true)
             {
-                if(beginning == 1)
-                {
-                    tempItem = currentItem;
-                    SymTable->table[i] = currentItem->NextPtr;
-                    currentItem = currentItem->NextPtr;
-                    SymTableItemFree(tempItem);
-                    beginning = 0;
-                }   
-                else if(currentItem->NextPtr != NULL)
-                {
-                    tempItem = currentItem->NextPtr;
-                    currentItem = tempItem->NextPtr;
-                    SymTableItemFree(tempItem);
-                }
-                else
-                    currentItem = currentItem->NextPtr;
+                tempItem = *currentItem;
+                *currentItem = tempItem->NextPtr;
+                SymTableItemFree(tempItem);
             }
             else
-                currentItem = currentItem->NextPtr;
+            {
+                currentItem = &((*currentItem)->NextPtr);
+            }
         }
     }
 }
