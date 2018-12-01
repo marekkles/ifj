@@ -13,44 +13,35 @@ int main(int argc, char const *argv[])
         DebugFPuts("Failed to intitialize\n", stdout);
     }
 
-    return_value = CodeDeclareVariable("var1");
-    return_value = CodeDeclareVariable("var2");
-    return_value = CodeDeclareVariable("var3");
-    return_value = CodeDeclareVariable("var4");
+    int uniqueIfNumber = CodeGetUniqueIf();
 
-    return_value = CodeAddFunctionStart("my_fun1");
 
-    return_value = CodeAddFunctionParameter("id");
-    return_value = CodeAddFunctionParameter("a");
-    return_value = CodeAddFunctionParameter("b");
-    return_value = CodeAddFunctionParameter("c");
+    return_value = CodeDeclareVariable("%condition");
+    return_value = CodeDeclareVariable("%conditionType");
+    return_value = CodeDeclareVariable("a");
+    return_value = CodeMoveInt("a", 10);
+    return_value = CodeAddTextToBody("\nWRITE LF@a");
 
-    return_value = CodeAddInstruction(WRITE);
-    return_value = CodeAddTextToBody(" ");
-    return_value = CodeAddVariable("id");
 
-    return_value = CodeAddInstruction(WRITE);
-    return_value = CodeAddTextToBody(" ");
-    return_value = CodeAddVariable("a");
+    //return_value = CodeMoveString("%condition", "AHOY");
+    //return_value = CodeMoveInt("%condition", 0);
+    //return_value = CodeMoveFloat("%condition", 1.10);
+    //return_value = CodeMoveNil("%condition");
+    //return_value = CodeMoveBool("%condition", true);
+    int uniqueWhileNumber = CodeGetUniqueWhile();
 
-    return_value = CodeAddInstruction(WRITE);
-    return_value = CodeAddTextToBody(" ");
-    return_value = CodeAddVariable("b");
 
-    return_value = CodeAddInstruction(WRITE);
-    return_value = CodeAddTextToBody(" ");
-    return_value = CodeAddVariable("c");
+    return_value = CodeAddWhileStart(uniqueWhileNumber);
 
-    return_value = CodeAddFunctionEnd();
+    return_value = CodeAddTextToBody("\nGT LF@%condition LF@a int@0");
 
-    return_value = CodeAddFunctionCallStart();
+    return_value = CodeAddWhileBody(uniqueWhileNumber);
 
-    return_value = CodeAddFunctionCallInt(10);
-    return_value = CodeAddFunctionCallDouble(3.141592654359);
-    return_value = CodeAddFunctionCallString("lol\\020boy");
-    return_value = CodeAddFunctionCallVariable("var1");
-    return_value = CodeAddFunctionCall("my_fun1");
+    return_value = CodeAddTextToBody("\nWRITE LF@a");
+    return_value = CodeAddTextToBody("\nWRITE string@\\032");
+    return_value = CodeAddTextToBody("\nSUB LF@a LF@a int@1");
 
+    return_value = CodeAddWhileEnd(uniqueWhileNumber);
 
     CodeFinalize();
     return 0;
