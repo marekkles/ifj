@@ -78,3 +78,7 @@ ic18int
 codegen-test
 code.dep
 firsttest.src
+if.src
+test.src
+testfile1.src
+testparse.src
