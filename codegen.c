@@ -46,10 +46,78 @@ static void CodeInstructionListAllocate(CodeInstructionList_t **codeInstructionL
     CodeInstructionListClear(*codeInstructionList);
 }
 
+void CodeAddBuiltInFunctions()
+{
+    fputs(""\
+    "\n#Bult-In Function substr\n"
+    "LABEL $substr\n"\
+    "PUSHFRAME\n"\
+    "\n"\
+    "DEFVAR LF@%return\n"\
+    "MOVE LF@%return string@\n"\
+    "DEFVAR LF@%condition\n"\
+    "MOVE LF@%condition nil@nil\n"\
+    "\n"\
+    "DEFVAR LF@s\n"\
+    "MOVE LF@s LF@%1\n"\
+    "DEFVAR LF@i\n"\
+    "MOVE LF@i LF@%2\n"\
+    "DEFVAR LF@n\n"\
+    "MOVE LF@n LF@%3\n"\
+    "\n"\
+    "#Get length of string\n"\
+    "DEFVAR LF@stringLength\n"\
+    "STRLEN LF@stringLength LF@s\n"\
+    "\n"\
+    "DEFVAR LF@lastIndex\n"\
+    "MOVE LF@lastIndex LF@i\n"\
+    "\n"\
+    "ADD LF@lastIndex LF@lastIndex LF@n\n"\
+    "\n"\
+    "#Check if index is in range\n"\
+    "LT LF@%condition LF@i int@0\n"\
+    "JUMPIFEQ $$substrErr  LF@%condition bool@true\n"\
+    "LT LF@%condition LF@i LF@stringLength\n"\
+    "JUMPIFEQ $$substrErr  LF@%condition bool@false\n"\
+    "LT LF@%condition LF@n int@0\n"\
+    "JUMPIFEQ $$substrErr  LF@%condition bool@true\n"\
+    "\n"\
+    "#Main loop\n"\
+    "DEFVAR LF@iterator\n"\
+    "MOVE LF@iterator LF@i\n"\
+    "DEFVAR LF@currentChar\n"\
+    "\n"\
+    "LABEL $$substrLoopStart\n"\
+    "\n"\
+    "#End loop if iterator >= stringLength || iterator >= lastIndex \n"\
+    "LT LF@%condition LF@iterator LF@stringLength\n"\
+    "JUMPIFEQ $$substrReturn LF@%condition bool@false\n"\
+    "LT LF@%condition LF@iterator LF@lastIndex\n"\
+    "JUMPIFEQ $$substrReturn LF@%condition bool@false\n"\
+    "\n"\
+    "#Concatenate with char at index iterator\n"\
+    "GETCHAR LF@currentChar LF@s LF@iterator\n"\
+    "CONCAT LF@%return LF@%return LF@currentChar\n"\
+    "\n"\
+    "#Increment iterator\n"\
+    "ADD LF@iterator LF@iterator int@1\n"\
+    "\n"\
+    "JUMP $$substrLoopStart\n"\
+    "LABEL $$substrReturn\n"\
+    "POPFRAME\n"\
+    "RETURN\n"\
+    "\n"\
+    "LABEL $$substrErr\n"\
+    "MOVE LF@%return nil@nil\n"\
+    "POPFRAME\n"\
+    "RETURN\n", stdout); 
+}
+
 int CodeInitialize(void)
 {
     fputs( ""\
     ".IFJcode18\n"\
+    "DEFVAR GF@%void\n"\
     "JUMP $$main\n"\
     , stdout); 
     const char MainBodyBegin[] = ""\
@@ -67,6 +135,8 @@ int CodeInitialize(void)
         CodeInstructionListFree(&instructionList);
         return PARSE_INT_ERR;
     }
+
+    CodeAddBuiltInFunctions();
 
     return PARSE_OK;
 }
@@ -98,6 +168,8 @@ int CodeAddFunctionEnd(void)
     puts(DStrStr(instructionList->functionBody));
     puts("\nPOPFRAME\n"
          "RETURN\n");
+    DStrClear(instructionList->functionVariableList);
+    DStrClear(instructionList->functionBody);
     return PARSE_OK;
 }
 
@@ -175,6 +247,33 @@ int CodeAddVariable(const char *str)
     return return_value;
 }
 
+int CodeAddNil()
+{
+    int return_value = PARSE_OK;
+    if((return_value = CodeAddTextToBody("nil@nil")) != PARSE_OK)
+        return return_value;
+    return return_value;
+}
+
+int CodeAddBool(bool boolValue)
+{
+    int return_value = PARSE_OK;
+    if((return_value = CodeAddTextToBody("bool@")) != PARSE_OK)
+        return return_value;
+
+    if(boolValue)
+    {
+        if((return_value = CodeAddTextToBody("true")) != PARSE_OK)
+            return return_value;
+    }
+    else
+    {
+        if((return_value = CodeAddTextToBody("false")) != PARSE_OK)
+            return return_value;
+    }
+    return return_value;
+}
+
 int CodeAddFunctionCallString(const char *str)
 {
     int return_value = PARSE_OK;
@@ -208,6 +307,15 @@ int CodeAddFunctionCallVariable(const char *str)
     if((return_value = CodeAddFunctionCallParameter()) != PARSE_OK)
         return return_value;
     if((return_value = CodeAddVariable(str)) != PARSE_OK)
+        return return_value;
+    return return_value;
+}
+int CodeAddFunctionCallNil()
+{
+    int return_value = PARSE_OK;
+    if((return_value = CodeAddFunctionCallParameter()) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddNil()) != PARSE_OK)
         return return_value;
     return return_value;
 }
@@ -249,8 +357,82 @@ int CodeAddWhileStart(int uniqueWhileNumber)
 }
 int CodeAddWhileBody(int uniqueWhileNumber)
 {
-    int return_value;
+    int return_value = PARSE_OK;
+    char int_to_string[21] = {0,};
+    sprintf(int_to_string, "%d", uniqueWhileNumber);
+
+    if((return_value = CodeAddTextToBody("\n#While Loop Condition")) != PARSE_OK)
+        return return_value;
+
+
+    //Get type of variable which is stored in %condition
+    if((return_value = CodeAddInstruction(TYPE)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddVariable("%conditionType")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddVariable("%condition")) != PARSE_OK)
+        return return_value;
+
+    //Add instruction to jump to $$while[n]end if it is nil
+    if((return_value = CodeAddInstruction(JUMPIFEQ)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" $$while")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(int_to_string)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody("end ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddVariable("%conditionType")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddString("nil")) != PARSE_OK)
+        return return_value;
+
+    //Add jump to $$while[n]body it it is not bool
+    if((return_value = CodeAddInstruction(JUMPIFNEQ)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" $$while")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(int_to_string)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody("body ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddVariable("%conditionType")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddString("bool")) != PARSE_OK)
+        return return_value;
+
+    //Now it is 100% bool so jump to $$if[n]else if %condition is false
+    if((return_value = CodeAddInstruction(JUMPIFEQ)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" $$while")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(int_to_string)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody("end ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddVariable("%condition")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddBool(false)) != PARSE_OK)
+        return return_value;
+
+
     if((return_value = CodeAddTextToBody("\n#While Loop Body")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody("\nLABEL $$while")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(int_to_string)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody("body")) != PARSE_OK)
         return return_value;
     return return_value;
 }
@@ -282,11 +464,94 @@ int CodeAddIfStart(int uniqueIfNumber)
         return return_value;
     return return_value;
 }
+int CodeAddIfCondition(int uniqueIfNumber)
+{
+    int return_value = PARSE_OK;
+    char int_to_string[21] = {0,};
+    sprintf(int_to_string, "%d", uniqueIfNumber);
+
+    //Get type of variable which is stored in %condition
+    if((return_value = CodeAddInstruction(TYPE)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddVariable("%conditionType")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddVariable("%condition")) != PARSE_OK)
+        return return_value;
+
+    //Add instruction to jump to $$if[n]else if it is nil
+    if((return_value = CodeAddInstruction(JUMPIFEQ)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" $$if")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(int_to_string)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody("else ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddVariable("%conditionType")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddString("nil")) != PARSE_OK)
+        return return_value;
+
+    //Add jump to $$if[n]start it it is not bool
+    if((return_value = CodeAddInstruction(JUMPIFNEQ)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" $$if")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(int_to_string)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody("start ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddVariable("%conditionType")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddString("bool")) != PARSE_OK)
+        return return_value;
+
+    //Now it is 100% bool so jump to $$if[n]else if %condition is false
+    if((return_value = CodeAddInstruction(JUMPIFEQ)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" $$if")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(int_to_string)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody("else ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddVariable("%condition")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddBool(false)) != PARSE_OK)
+        return return_value;
+    
+    //Add label for $$if[n]start
+    if((return_value = CodeAddTextToBody("\n#If Start\nLABEL $$if")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(int_to_string)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody("start")) != PARSE_OK)
+        return return_value;
+    return return_value;
+}
+
 int CodeAddIfElse(int uniqueIfNumber)
 {
     int return_value = PARSE_OK;
     char int_to_string[21] = {0,};
     sprintf(int_to_string, "%d", uniqueIfNumber);
+
+    if((return_value = CodeAddTextToBody("\nJUMP $$if")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(int_to_string)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody("end")) != PARSE_OK)
+        return return_value;
 
     if((return_value = CodeAddTextToBody("\n#If Else\nLABEL $$if")) != PARSE_OK)
         return return_value;
@@ -426,3 +691,120 @@ int CodeDeclareVariable(const char *variableName)
 
 }
 
+int CodeMoveReturn(const char *destinationVar)
+{
+    int return_value = PARSE_OK;
+
+    if((return_value = CodeAddInstruction(MOVE)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddVariable(destinationVar)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" TF@%return")) != PARSE_OK)
+        return return_value;
+
+    return return_value;
+}
+int CodeMoveVar(const char *destinationVar, const char *sourceVar)
+{
+    int return_value = PARSE_OK;
+
+    if((return_value = CodeAddInstruction(MOVE)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddVariable(destinationVar)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddVariable(sourceVar)) != PARSE_OK)
+        return return_value;
+
+    return return_value;
+}
+
+int CodeMoveInt(const char *destinationVar, int intValue)
+{
+    int return_value = PARSE_OK;
+
+    if((return_value = CodeAddInstruction(MOVE)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddVariable(destinationVar)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddInt(intValue)) != PARSE_OK)
+        return return_value;
+
+    return return_value;
+}
+
+int CodeMoveFloat(const char *destinationVar, double doubleValue)
+{
+    int return_value = PARSE_OK;
+
+    if((return_value = CodeAddInstruction(MOVE)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddVariable(destinationVar)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddDouble(doubleValue)) != PARSE_OK)
+        return return_value;
+
+    return return_value;
+}
+
+int CodeMoveString(const char *destinationVar, const char *str)
+{
+    int return_value = PARSE_OK;
+
+    if((return_value = CodeAddInstruction(MOVE)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddVariable(destinationVar)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddString(str)) != PARSE_OK)
+        return return_value;
+
+    return return_value;
+}
+
+int CodeMoveNil(const char *destinationVar)
+{
+    int return_value = PARSE_OK;
+
+    if((return_value = CodeAddInstruction(MOVE)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddVariable(destinationVar)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" nil@nil")) != PARSE_OK)
+        return return_value;
+
+    return return_value;
+}
+int CodeMoveBool(const char *destinationVar, bool boolValue)
+{
+    int return_value = PARSE_OK;
+
+    if((return_value = CodeAddInstruction(MOVE)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddVariable(destinationVar)) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddBool(boolValue)) != PARSE_OK)
+        return return_value;
+}
