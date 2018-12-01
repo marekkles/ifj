@@ -102,6 +102,18 @@ int DStrReplace(DStr_t **DStr, const char *str)
     return DStrCat(DStr, str);
 }
 /**
+ * Function will return las char in dynamic string
+ * @param DStr input string to get char from
+*/
+
+char DStrLast(DStr_t *DStr)
+{
+    if(DStr->strlen == 0)
+        return '\0';
+    return DStr->str[DStr->strlen - 1];
+}
+
+/**
  * Function will deete last character and set it to zero
  * it will also decremet length of string
  * @param DStr Input dynamic string
