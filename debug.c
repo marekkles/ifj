@@ -156,34 +156,24 @@ void DebugFPrintSymTable(FILE *output, SymTable_t *symtable)
 
 void DebugFPrintSStackItem(FILE *output, SStackItem_t *sstackItem)
 {
-    const char *stackItemTypesNames[] = {
-        "STACK_ITEM_VAR",
-        "STACK_ITEM_INTEGER",
-        "STACK_ITEM_DOUBLE",
-        "STACK_ITEM_LESSER_THAN", 
-        "STACK_ITEM_GREATER_THAN", 
-        "STACK_ITEM_EQUAL_TO", 
-        "STACK_ITEM_NOT_EQUAL_TO",
-        "STACK_ITEM_GREATER_EQUAL_THAN", 
-        "STACK_ITEM_LESSER_EQUAL_THAN",
-        "STACK_ITEM_MULTIPLY", 
-        "STACK_ITEM_DIVIDE", 
-        "STACK_ITEM_ADD", 
-        "STACK_ITEM_SUBTRACT", 
-        "STACK_ITEM_LBRACKET",
-        "STACK_ITEM_RBRACKET",
-        "STACK_ITEM_END"
+    const char *stackTerminalNames[] = {
+        "TERMINAL_MULT_DIVIDE", // * /
+        "TERMINAL_PLUS_MINUS", // + -
+        "TERMINAL_COMPARISON", // <= >= < >
+        "TERMINAL_NOT_EQUAL", // == !=
+        "TERMINAL_LEFT_BRACKET", // (
+        "TERMINAL_RIGHT_BRACKET", // )
+        "TERMINAL_TERM", // id int float string nil
+        "TERMINAL_END" // $
     };
-    int intValue;
-		double doubleValue;
-		TokenOperationType_t operationType;
 
-    fputs(stackItemTypesNames[sstackItem->type], output);
-
-    if(sstackItem->type == STACK_ITEM_INTEGER)
-        fprintf(output, ", %d", sstackItem->intValue);
-    else if(sstackItem->type == STACK_ITEM_DOUBLE)
-        fprintf(output, ", %lf", sstackItem->doubleValue);
+    if(sstackItem->isNonterminal == false)
+        fputs(stackTerminalNames[sstackItem->terminal], output);
+    else
+        fputs("NONTERMINAL", output);
+    
+    if(sstackItem->isNonterminal == false && sstackItem->isLessThan)
+        fputs(" <", output);
     fputc('\n', output);
     return;
 }

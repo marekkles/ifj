@@ -2,61 +2,133 @@
 #include "symbolstack.h"
 #include "debug.h"
 
+
+SymTable_t *symtable;
+
 int main(int argc, char const *argv[])
 {
+
+
     SStack_t *sstack;
     SStackItem_t sstackItem, *topItem;
-    Init_SStack(&sstack, 50);
-    DebugFPrintSStack(stdout, sstack);
+    Init_SStack(&sstack, 10);
+    SymTableInit(&symtable, 10);
+    SStackPushEnd(&sstack);
 
-    sstackItem.type = STACK_ITEM_GREATER_EQUAL_THAN;
-    sstackItem.operationType = TO_ADD;
-    Push_SStack(&sstack, &sstackItem);
-
-    sstackItem.type = STACK_ITEM_DOUBLE;
-    sstackItem.doubleValue = 3.14159;
-    Push_SStack(&sstack, &sstackItem);
-
-    sstackItem.type = STACK_ITEM_INTEGER;
-    sstackItem.operationType = 42;
-    Push_SStack(&sstack, &sstackItem);
-
-    sstackItem.type = STACK_ITEM_GREATER_EQUAL_THAN;
-    sstackItem.operationType = TO_LBRACKET;
-    Push_SStack(&sstack, &sstackItem);
-
-    sstackItem.type = STACK_ITEM_GREATER_EQUAL_THAN;
-    sstackItem.operationType = TO_ADD;
+    Token_t token;
+    DStr_t *dstr;
+    DStrInit(&dstr, 20);
+    
+    token.type = T_INTEGER;
+    token.intValue = 10;
+    DStrClear(dstr);
+    DStrCat(&dstr, "");
+    SStackProcessTokenToItem(dstr, &token, &sstackItem);
     Push_SStack(&sstack, &sstackItem);
 
     DebugFPrintSStack(stdout, sstack);
 
-    DebugFPuts("\n~~~ POPING stack ~~~\n\n", stdout);
+    token.type = T_DOUBLE;
+    token.doubleValue = 3.141592654359;
+    DStrClear(dstr);
+    DStrCat(&dstr, "");
+    SStackProcessTokenToItem(dstr, &token, &sstackItem);
+    Push_SStack(&sstack, &sstackItem);
 
-    Pop_SStack(sstack);
     DebugFPrintSStack(stdout, sstack);
 
-    DebugFPuts("\n~~~ TOP item ~~~\n\n", stdout);
-
-    topItem = Top_SStack(sstack);
-
-    DebugFPrintSStackItem(stdout, topItem);
-
-    DebugFPuts("\n~~~ POPING stack (3x) ~~~\n\n", stdout);
-
-    Pop_SStack(sstack);
-    Pop_SStack(sstack);
-    Pop_SStack(sstack);
-    DebugFPrintSStackItem(stdout, topItem);
-
-    DebugFPuts("\n~~~ PUSH 1 item ~~~\n\n", stdout);
-
-    sstackItem.type = STACK_ITEM_INTEGER;
-    sstackItem.operationType = -5;
+    token.type = T_STRING;
+    DStrClear(dstr);
+    DStrCat(&dstr, "String1234567890");
+    SStackProcessTokenToItem(dstr, &token, &sstackItem);
     Push_SStack(&sstack, &sstackItem);
-    DebugFPrintSStackItem(stdout, topItem);
 
-    DebugFPuts("\n~~~ Dispose tack ~~~\n\n", stdout);
+    DebugFPrintSStack(stdout, sstack);
+
+    token.type = T_IDENTIFIER;
+    DStrClear(dstr);
+    DStrCat(&dstr, "XXX");
+    SymTableAddVariable(symtable, DStrStr(dstr));
+    SStackProcessTokenToItem(dstr, &token, &sstackItem);
+    Push_SStack(&sstack, &sstackItem);
+
+    DebugFPrintSStack(stdout, sstack);
+
+    token.type = T_OPERATION;
+    token.operationType = TO_ADD;
+    DStrClear(dstr);
+    SStackProcessTokenToItem(dstr, &token, &sstackItem);
+    Push_SStack(&sstack, &sstackItem);
+
+    DebugFPrintSStack(stdout, sstack);
+
+    token.type = T_OPERATION;
+    token.operationType = TO_SUBTRACT;
+    DStrClear(dstr);
+    SStackProcessTokenToItem(dstr, &token, &sstackItem);
+    Push_SStack(&sstack, &sstackItem);
+
+    DebugFPrintSStack(stdout, sstack);
+
+    token.type = T_OPERATION;
+    token.operationType = TO_MULTIPLY;
+    DStrClear(dstr);
+    SStackProcessTokenToItem(dstr, &token, &sstackItem);
+    Push_SStack(&sstack, &sstackItem);
+
+    DebugFPrintSStack(stdout, sstack);
+
+    token.type = T_OPERATION;
+    token.operationType = TO_DIVIDE;
+    DStrClear(dstr);
+    SStackProcessTokenToItem(dstr, &token, &sstackItem);
+    Push_SStack(&sstack, &sstackItem);
+
+    DebugFPrintSStack(stdout, sstack);
+
+    token.type = T_OPERATION;
+    token.operationType = TO_LESSER_THAN;
+    DStrClear(dstr);
+    SStackProcessTokenToItem(dstr, &token, &sstackItem);
+    Push_SStack(&sstack, &sstackItem);
+
+    DebugFPrintSStack(stdout, sstack);
+
+    token.type = T_OPERATION;
+    token.operationType = TO_GREATER_THAN;
+    DStrClear(dstr);
+    SStackProcessTokenToItem(dstr, &token, &sstackItem);
+    Push_SStack(&sstack, &sstackItem);
+
+
+    token.type = T_OPERATION;
+    token.operationType = TO_LESSER_EQUAL_THAN;
+    DStrClear(dstr);
+    SStackProcessTokenToItem(dstr, &token, &sstackItem);
+    Push_SStack(&sstack, &sstackItem);
+
+    token.type = T_OPERATION;
+    token.operationType = TO_GREATER_EQUAL_THAN;
+    DStrClear(dstr);
+    SStackProcessTokenToItem(dstr, &token, &sstackItem);
+    Push_SStack(&sstack, &sstackItem);
+
+    token.type = T_OPERATION;
+    token.operationType = TO_LBRACKET;
+    DStrClear(dstr);
+    SStackProcessTokenToItem(dstr, &token, &sstackItem);
+    Push_SStack(&sstack, &sstackItem);
+
+
+    token.type = T_OPERATION;
+    token.operationType = TO_RBRACKET;
+    DStrClear(dstr);
+    SStackProcessTokenToItem(dstr, &token, &sstackItem);
+    Push_SStack(&sstack, &sstackItem);
+
+    DStrFree(&dstr);
+    //DebugFPrintSStack(stdout, sstack);
+
     Dispose_SStack(&sstack);
     return 0;
 }
