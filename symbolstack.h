@@ -1,38 +1,56 @@
 #ifndef SYMBOLSTACK_H
 #define SYMBOLSTACK_H
 
+
+#include <stdlib.h>
 #include "symtable.h"
 #include "token.h"
+#include "dstr.h"
+#include "return.h"
 
 #define MIN_REALLOC 50
+#define SSTACK_DEFAULT_SIZE 25
 
 typedef enum {
-	STACK_ITEM_VAR,
-	STACK_ITEM_INTEGER,
-	STACK_ITEM_DOUBLE,
-	STACK_ITEM_LESSER_THAN, 
-    STACK_ITEM_GREATER_THAN, 
-    STACK_ITEM_EQUAL_TO, 
-    STACK_ITEM_NOT_EQUAL_TO,
-    STACK_ITEM_GREATER_EQUAL_THAN, 
-    STACK_ITEM_LESSER_EQUAL_THAN,
-    STACK_ITEM_MULTIPLY, 
-    STACK_ITEM_DIVIDE, 
-    STACK_ITEM_ADD, 
-    STACK_ITEM_SUBTRACT, 
-    STACK_ITEM_LBRACKET,
-    STACK_ITEM_RBRACKET,
-	STACK_ITEM_END
-} StackItemType_t;
+	PRE_LT, // <
+	PRE_GT, // >
+	PRE_EQ, // =
+	PRE_NT  // blank 
+} ExpressionPrecedence_t;
+typedef enum {
+	TERMINAL_MULT_DIVIDE, // * /
+	TERMINAL_PLUS_MINUS, // + -
+	TERMINAL_COMPARISON, // <= >= < >
+	TERMINAL_NOT_EQUAL, // == !=
+	TERMINAL_LEFT_BRACKET, // (
+	TERMINAL_RIGHT_BRACKET, // )
+	TERMINAL_TERM, // id int float string nil
+	TERMINAL_END, // $
+} ExpressionTerminal_t;
+
+
+typedef enum {
+	STACK_SYMBOL,
+	STACK_INT,
+	STACK_DOUBLE,
+	STACK_STRING,
+	STACK_NIL,
+	STACK_OPERATION
+} StackItemDataType_t;
 
 typedef struct {
-	StackItemType_t type;
-	union{
-		SymTableItem_t * symTableItem;
+	ExpressionTerminal_t terminal;
+	bool isNonterminal;
+	bool isLessThan;
+
+	StackItemDataType_t dataType;
+	union {
+		SymTableItem_t *symbol;
 		int intValue;
 		double doubleValue;
-		TokenOperationType_t operationType;
-	};
+		char *string;
+		TokenOperationType_t operation;
+	} data;
 } SStackItem_t;
 
 typedef struct {
@@ -40,6 +58,17 @@ typedef struct {
 	size_t size;
 	SStackItem_t stack[];
 } SStack_t;
+
+char *SStackAlocateCopyString(char *originalString);
+void SStackFreeString(char *string);
+int SStackProcessTokenToItem(DStr_t *dstr, Token_t *token, SStackItem_t *retsultingItem);
+
+int SStackTopTerminal(SStack_t *Stack);
+int SStackTopLT(SStack_t *Stack);
+int SStackReduceByRule(SStack_t** Stack, int ltIndex);
+int SStackPushEnd(SStack_t** Stack);
+
+ExpressionPrecedence_t SStackGetExpessionPrecedence(SStack_t *stack, SStackItem_t *stackItem);
 
 void Init_SStack (SStack_t** Stack, size_t size);
 int Push_SStack (SStack_t** Stack, SStackItem_t* Item);
