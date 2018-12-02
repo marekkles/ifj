@@ -6,6 +6,7 @@
 #include "fsm.h"
 #include "symtable.h"
 #include "codegen.h"
+#include "symbolstack.h"
 
 #ifndef PARSER_H
 

@@ -1,17 +1,14 @@
-def fun(id, a, b)
-    
+def fun1(c)
+    id = fun2
+    print("Fun 1: ", id, "\n")
 end
 
-def fun2 (id, a, b)
+def fun2()
+    print("Fun 2:\n")
 end
 
-def fun3 (id, a, b)
-end
+a = fun2
 
-def fun4 (id, a, b)
-end
+fun1(a)
 
-def fun5 (id, a, b)
-end
-
-fun10 = fun(id, a, b, c)
+print a

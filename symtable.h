@@ -15,6 +15,7 @@ typedef enum {
     VAR_NIL,
     VAR_UNDEFINED
 }SymTableVariableType_t;
+
 typedef struct SymTableItem_s {
     bool local;
     bool def;
@@ -32,6 +33,8 @@ typedef struct {
     bool localMode;
     SymTableItem_t *table[];
 } SymTable_t;
+
+extern SymTable_t *symtable;
 
 /*SymTableItem_t *SymTableAllocateItem(SymTableSymbolType_t type, char *key);
 

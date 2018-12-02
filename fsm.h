@@ -18,8 +18,6 @@
 
 #define FSM_H
 
-extern int CurrentlyReading[2];
-
 int GetToken(DStr_t **DStr, Token_t *token);
 
 #endif

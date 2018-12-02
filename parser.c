@@ -4,6 +4,7 @@ extern FILE *input;
 extern FILE *output;
 
 int in_function = 0;
+int in_while = 0;
 static int function_definition = 0;
 static int parameter_count = 0;
 
@@ -15,7 +16,7 @@ enum {
     FUN_LENGTH
 };
 
-static SymTable_t *symtable;
+SymTable_t *symtable;
 
 
 static int TokenExpect(Token_t *token, TokenType_t type);
@@ -34,6 +35,13 @@ static int TermOther(DStr_t **dstr, Token_t *token);
 static int CommandEnd(DStr_t **dstr, Token_t *token);
 static int Command(DStr_t **dstr, Token_t *token);
 static int Expression(DStr_t **dstr, Token_t *token, DStr_t **nextDstr,Token_t *nextToken, SymTableItem_t *returnVariable);
+
+static int SymTableAddInternalFunctions(SymTable_t *symtable)
+{
+    SymTableItem_t *function = SymTableAddFunction(symtable, "substr", 3, true);
+    if(function == NULL)
+        return PARSE_INT_ERR;
+}
 
 static int ExpectTerm(DStr_t **dstr, Token_t *token)
 {
@@ -258,7 +266,17 @@ static int ParseInternalInlineFunction(int iternalInlineFunctionNumber, SymTable
         {
             if((return_value = ExpectTerm(dstr, token)) != PARSE_OK)
                 return return_value;
-
+            if(token->type == T_IDENTIFIER)
+            {
+                SymTableItem_t *foundVariable = SymTableFindItem(symtable, DStrStr(*dstr));
+                if(foundVariable == NULL)
+                    return PARSE_UNDEF_VAR;
+                if(foundVariable->type != SYM_VARIABLE)
+                    return PARSE_UNDEF_VAR;
+                    
+                if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
+                    return return_value;
+            }
             if((return_value = CodeAddInstruction(STRLEN)) != PARSE_OK)
                 return return_value;
             if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
@@ -276,7 +294,14 @@ static int ParseInternalInlineFunction(int iternalInlineFunctionNumber, SymTable
             if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
                 return return_value;
 
-            
+            if(token->type == T_IDENTIFIER)
+                if((return_value = CodeAddVariable(DStrStr(*dstr))) != PARSE_OK)
+                    return return_value;
+            if(token->type == T_STRING)
+                if((return_value = CodeAddString(DStrStr(*dstr))) != PARSE_OK)
+                    return return_value;
+            if(token->type != T_STRING && token->type != T_IDENTIFIER)
+                return PARSE_TYPE_COMP;
 
             if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
                 return return_value;
@@ -692,7 +717,9 @@ static int CommandEnd(DStr_t **dstr, Token_t *token)
 static int Command(DStr_t **dstr, Token_t *token)
 {
     int return_value = PARSE_OK;
-    SymTableItem_t *returnVariable = SymTableFindItem(symtable, "%return");
+    SymTableItem_t *returnVariable = NULL;
+    if(in_while == 0)
+        returnVariable = SymTableFindItem(symtable, "%return");
 
     DebugFPuts("  In: <Command> <= ", output);
     DebugFPrintToken(output, token, *dstr);
@@ -719,6 +746,8 @@ static int Command(DStr_t **dstr, Token_t *token)
                 return return_value;
         }
 
+        if(returnVariable != NULL)
+            if((return_value = CodeMoveNil(returnVariable->key)));
         int uniqueIfNumber = CodeGetUniqueIf();
         if((return_value = CodeAddIfStart(uniqueIfNumber)) != PARSE_OK)
             return return_value;
@@ -794,6 +823,10 @@ static int Command(DStr_t **dstr, Token_t *token)
                 return return_value;
         }
 
+        int uniqueWhileNumber = CodeGetUniqueWhile();
+        if((return_value = CodeAddWhileStart(uniqueWhileNumber)) != PARSE_OK)
+            return return_value;
+        
         if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
             return return_value;
         if((return_value = Expression(dstr, token, NULL, NULL, conditionVar)) != PARSE_OK)
@@ -804,9 +837,20 @@ static int Command(DStr_t **dstr, Token_t *token)
         DebugFPuts("  In: <Command> -> while <Expression> do\n", output);
         if((return_value = GetTokenExpect(dstr, token, T_EOL)) != PARSE_OK)
             return return_value;
+
+        if((return_value = CodeAddWhileBody(uniqueWhileNumber)) != PARSE_OK)
+            return return_value;
+        
         DebugFPuts("  In: <Command> -> while <Expression> do EOL\n", output);
         if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
             return return_value;
+
+        in_while = 1;
+        if((return_value = CodeAddWhileEnd(uniqueWhileNumber)) != PARSE_OK)
+            return return_value;
+        if(returnVariable != NULL)
+            if((return_value = CodeMoveNil(returnVariable->key)));
+        
         if((return_value = Command(dstr, token)) != PARSE_OK)
             return return_value;
         DebugFPuts("  In: <Command> -> while <Expression> do EOL <Command>\n", output);
@@ -815,6 +859,11 @@ static int Command(DStr_t **dstr, Token_t *token)
         DebugFPuts("  In: <Command> -> while <Expression> do EOL <Command> end\n", output);
         if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
             return return_value;
+
+        in_while = 0;
+
+
+
         return CommandEnd(dstr, token);
     }
     else if((return_value = TokenExpect(token, T_EOL)) == PARSE_OK)
@@ -900,7 +949,7 @@ static int Command(DStr_t **dstr, Token_t *token)
         }
 
         //Function calls, zero (in brackets) or one or more parameters
-        if(TokenExpectOperation(&tempToken, TO_LBRACKET) == PARSE_OK || ExpectTerm(&tempDstr, &tempToken) == PARSE_OK)
+        if(TokenExpect(token, T_IDENTIFIER) == PARSE_OK && (TokenExpectOperation(&tempToken, TO_LBRACKET) == PARSE_OK || ExpectTerm(&tempDstr, &tempToken) == PARSE_OK))
         {
             DebugFPuts("  In: <Command> -> potential function call\n", output);
             SymTableItem_t *function = SymTableFindItem(symtable, DStrStr(*dstr)); 
@@ -961,7 +1010,7 @@ static int Command(DStr_t **dstr, Token_t *token)
                     
         }
         //Zero variable function call or expression
-        else if(TokenExpect(&tempToken, T_EOL) || TokenExpect(&tempToken, T_EOF))
+        else if(TokenExpect(token, T_IDENTIFIER) == PARSE_OK && (TokenExpect(&tempToken, T_EOL) || TokenExpect(&tempToken, T_EOF)))
         {
             SymTableItem_t *function = SymTableFindItem(symtable, DStrStr(*dstr)); 
             if(function == NULL && !in_function)
@@ -1025,49 +1074,123 @@ static int Command(DStr_t **dstr, Token_t *token)
     }
 }
 
-static int Expression(DStr_t **dstr, Token_t *token, DStr_t **nextDstr, Token_t *nextToken, SymTableItem_t *returnVariable)
+static int SStackPushReadNext(SStack_t *stack, SStackItem_t *currentStackItem, DStr_t **dstr, Token_t *token, DStr_t **nextDstr, Token_t *nextToken)
 {
-    typedef enum {
-        PRE_LT, // <
-        PRE_GT, // >
-        PRE_EQ, // =
-        PRE_NT  // blank 
-    } ExpressionPrecedence_t;
-
-    const ExpressionPrecedence_t precedenceTable[10][10] = 
+    int return_value = PARSE_OK;
+    if(!Push_SStack(&stack, currentStackItem))
+        return PARSE_INT_ERR;
+    
+    //Read next token if nextDstr and nextToken are not null coppy them else read another one
+    if(nextDstr != NULL && nextToken != NULL)
     {
-
-    };
-
-    DebugFPuts("    In: <Expression> <= ", output);
-
-    //Let's go 
-
-    DebugFPrintToken(output, token, *dstr);
-    if(
-        TokenExpect(token, T_IDENTIFIER) == PARSE_OK || 
-        TokenExpect(token, T_DOUBLE) == PARSE_OK || 
-        TokenExpect(token, T_INTEGER) == PARSE_OK || 
-        TokenExpect(token, T_STRING) == PARSE_OK || 
-        TokenExpect(token, T_OPERATION) == PARSE_OK
-       )
-    {
-        int return_value;
-        if(nextToken != NULL && nextDstr != NULL)
-        {
-            token->type = nextToken->type;
-            token->intValue = nextToken->intValue;
-            DStrReplace(dstr, DStrStr(*nextDstr));
-        }
-        else if((nextToken != NULL && nextDstr == NULL) || (nextToken == NULL && nextDstr != NULL))
+        if(!DStrReplace(dstr, DStrStr(*nextDstr)))
             return PARSE_INT_ERR;
-        else if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
+        *token = *nextToken;
+        
+    }
+    else if(nextDstr == NULL && nextToken == NULL)
+    {
+        if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
             return return_value;
-       
-        return Expression(dstr, token, NULL, NULL, returnVariable);
     }
     else
-        return PARSE_OK;
+        return PARSE_INT_ERR;
+    //Process new token to be compatible with SStack
+    if((return_value = SStackProcessTokenToItem(*dstr, token, currentStackItem)) != PARSE_OK)
+        return return_value;
+    return return_value;
+}
+
+static int CodeMoveSStackItem(SymTableItem_t *returnVariable, SStackItem_t *item)
+{
+    int return_value = PARSE_OK;
+    if(returnVariable == NULL)
+        return return_value;
+    if(item->dataType == STACK_DOUBLE)
+        return_value = CodeMoveFloat(returnVariable->key, item->data.doubleValue);
+    else if(item->dataType == STACK_INT)
+        return_value = CodeMoveInt(returnVariable->key, item->data.intValue);
+    else if(item->dataType == STACK_NIL)
+        return_value = CodeMoveNil(returnVariable->key);
+    else if(item->dataType == STACK_BOOL)
+        return_value = CodeMoveBool(returnVariable->key, item->data.boolValue);
+    else if(item->dataType == STACK_STRING)
+        return_value = CodeMoveString(returnVariable->key, item->data.string);
+    else if(item->dataType == STACK_SYMBOL)
+        return_value = CodeMoveVar(returnVariable->key, item->data.symbol->key);
+    else
+        return PARSE_INT_ERR;
+    return return_value;
+}
+
+static int Expression(DStr_t **dstr, Token_t *token, DStr_t **nextDstr, Token_t *nextToken, SymTableItem_t *returnVariable)
+{
+    int return_value = PARSE_OK;
+    SStack_t *stack;
+    Init_SStack(&stack, SSTACK_DEFAULT_SIZE);
+    if(stack == NULL)
+        return PARSE_INT_ERR;
+    
+    if((return_value =  SStackPushEnd(&stack)) != PARSE_OK)
+    {
+        Dispose_SStack(&stack);
+        return return_value;
+    }
+
+    SStackItem_t currentStackItem;
+    if((return_value = SStackProcessTokenToItem(*dstr, token, &currentStackItem)) != PARSE_OK)
+    {
+        Dispose_SStack(&stack);
+        return return_value;
+    }
+    while(SStackTopTerminal(stack) != NULL && !(SStackTopTerminal(stack)->terminal == TERMINAL_END && currentStackItem.terminal == TERMINAL_END))
+    {
+        ExpressionPrecedence_t precedenceRule = SStackGetExpessionPrecedence(stack, &currentStackItem);
+        if(precedenceRule == PRE_EQ)
+        {
+            if((return_value = SStackPushReadNext(stack, &currentStackItem, dstr, token, nextDstr, nextToken)) != PARSE_OK)
+            {
+                Dispose_SStack(&stack);
+            }
+            nextDstr = NULL;
+            nextToken = NULL;
+            DebugFPrintSStack(output, stack);
+        }
+        else if(precedenceRule == PRE_LT)
+        {
+            SStackTopTerminalAddLT(stack);
+            if((return_value = SStackPushReadNext(stack, &currentStackItem, dstr, token, nextDstr, nextToken)) != PARSE_OK)
+            {
+                Dispose_SStack(&stack);
+            }
+            nextDstr = NULL;
+            nextToken = NULL;
+            DebugFPrintSStack(output, stack);
+        }
+        else if(precedenceRule == PRE_GT)
+        {
+            if((return_value = SStackReduceByRule(stack)) != PARSE_OK)
+            {
+                Dispose_SStack(&stack);
+                return return_value;
+            }
+            DebugFPrintSStack(output, stack);
+        }
+        else
+        {
+            Dispose_SStack(&stack);
+            return PARSE_SYN_ERR;
+        }
+    }
+
+    SStackItem_t *topItem = Top_SStack(stack);
+    
+    return_value = CodeMoveSStackItem(returnVariable, topItem);
+    
+    DebugFPrintf(output, "%d, %lf\n", topItem->data.intValue, topItem->data.doubleValue);
+
+    Dispose_SStack(&stack);
+    return return_value;
 }
 
 int Parse(void)
@@ -1077,6 +1200,8 @@ int Parse(void)
     DStr_t *dstr;
     DStrInit(&dstr, 50);
     SymTableInit(&symtable, 10);
+    SymTableAddInternalFunctions(symtable);
+    
     if(dstr == NULL || symtable == NULL || CodeInitialize() != PARSE_OK)
         return_value = PARSE_INT_ERR;
     else

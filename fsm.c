@@ -777,7 +777,7 @@ int GetToken(DStr_t **DStr, Token_t *token)
                 {
                     state = S_POTENTIAL_IDENTIFIER_READ;
                 }
-                else if((read_char >= 'A' && read_char <= 'Z') || (read_char >= '0' && read_char <= '9'))
+                else if((read_char >= 'A' && read_char <= 'Z') || (read_char >= '0' && read_char <= '9') || read_char == '_')
                 {
                     state = S_IDENTIFIER_READ;
                 }
@@ -795,7 +795,7 @@ int GetToken(DStr_t **DStr, Token_t *token)
             }
             case S_IDENTIFIER_READ:
             {
-                if((read_char >= 'a' && read_char <= 'z') || (read_char >= 'A' && read_char <= 'Z') || (read_char >= '0' && read_char <= '9'))
+                if((read_char >= 'a' && read_char <= 'z') || (read_char >= 'A' && read_char <= 'Z') || (read_char >= '0' && read_char <= '9') || read_char == '_')
                 {
                     state = S_IDENTIFIER_READ;
                 }

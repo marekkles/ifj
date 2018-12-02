@@ -157,24 +157,34 @@ void DebugFPrintSymTable(FILE *output, SymTable_t *symtable)
 void DebugFPrintSStackItem(FILE *output, SStackItem_t *sstackItem)
 {
     const char *stackTerminalNames[] = {
-        "TERMINAL_MULT_DIVIDE", // * /
-        "TERMINAL_PLUS_MINUS", // + -
-        "TERMINAL_COMPARISON", // <= >= < >
-        "TERMINAL_NOT_EQUAL", // == !=
-        "TERMINAL_LEFT_BRACKET", // (
-        "TERMINAL_RIGHT_BRACKET", // )
-        "TERMINAL_TERM", // id int float string nil
-        "TERMINAL_END" // $
+        "TERMINAL_MULT_DIVIDE ", // * /
+        "TERMINAL_PLUS_MINUS ", // + -
+        "TERMINAL_COMPARISON ", // <= >= < >
+        "TERMINAL_NOT_EQUAL ", // == !=
+        "TERMINAL_LEFT_BRACKET ", // (
+        "TERMINAL_RIGHT_BRACKET ", // )
+        "TERMINAL_TERM ", // id int float string nil
+        "TERMINAL_END " // $
+    };
+
+    const char *stackTerminalShortNames[] = {
+        "[*, /]", // * /
+        "[+, -]", // + -
+        "[<=, >=, <, >]", // <= >= < >
+        "[!=, ==]", // == !=
+        "(", // (
+        ")", // )
+        "term", // id int float string nil
+        "$" // $
     };
 
     if(sstackItem->isNonterminal == false)
-        fputs(stackTerminalNames[sstackItem->terminal], output);
+        fputs(stackTerminalShortNames[sstackItem->terminal], output);
     else
-        fputs("NONTERMINAL", output);
-    
+        fputs("E", output);
     if(sstackItem->isNonterminal == false && sstackItem->isLessThan)
-        fputs(" <", output);
-    fputc('\n', output);
+        fputs("<", output);
+    fputs(" ", output);
     return;
 }
 
@@ -183,12 +193,10 @@ void DebugFPrintSStack(FILE *output, SStack_t *sstack)
     fputs("+--------+\n", output);
     fputs("| SStack |\n", output);
     fputs("+--------+\n", output);
-    fputs(" top ->", output);
-    for(int i = sstack->top; i >= 0; i--)
+    fputs(" Bottom -> ", output);
+    //fputs(" top ->", output);
+    for(int i = 0; i <= sstack->top; i++)
     {
-        if(i != sstack->top)
-            fputs("       ", output);    
-        fputs("  ", output);
         DebugFPrintSStackItem(output, &(sstack->stack[i]));
     }
     fputc('\n', output);

@@ -126,9 +126,53 @@ int main(int argc, char const *argv[])
     SStackProcessTokenToItem(dstr, &token, &sstackItem);
     Push_SStack(&sstack, &sstackItem);
 
-    DStrFree(&dstr);
-    //DebugFPrintSStack(stdout, sstack);
+    token.type = T_OPERATION;
+    token.operationType = TO_ASSIGNMENT;
+    DStrClear(dstr);
+    SStackProcessTokenToItem(dstr, &token, &sstackItem);
+    Push_SStack(&sstack, &sstackItem);
 
+    token.type = T_KEYWORD;
+    token.keywordType = TK_NIL;
+    DStrClear(dstr);
+    SStackProcessTokenToItem(dstr, &token, &sstackItem);
+    Push_SStack(&sstack, &sstackItem);
+
+    token.type = T_KEYWORD;
+    token.keywordType = TK_END;
+    DStrClear(dstr);
+    SStackProcessTokenToItem(dstr, &token, &sstackItem);
+    Push_SStack(&sstack, &sstackItem);
+
+    DebugFPrintSStack(stdout, sstack);
+
+    int topTerminal = SStackTopTerminal(sstack);
+
+    DebugFPrintf(stdout, "\nTop terminal index = [%d]\n\nTop terminal:\n", topTerminal);
+    DebugFPrintSStackItem(stdout, &(sstack->stack[topTerminal]));
+
+    sstack->stack[topTerminal].isNonterminal = true;
+
+    topTerminal = SStackTopTerminal(sstack);
+    DebugFPrintf(stdout, "\nTop terminal index = [%d]\n\nTop terminal:\n", topTerminal);
+    DebugFPrintSStackItem(stdout, &(sstack->stack[topTerminal]));
+
+    sstack->stack[topTerminal].isNonterminal = true;
+
+    topTerminal = SStackTopTerminal(sstack);
+    sstack->stack[topTerminal].isNonterminal = true;
+
+    topTerminal = SStackTopTerminal(sstack);
+    sstack->stack[topTerminal].isNonterminal = true;
+
+    DebugFPrintSStack(stdout, sstack);
+
+    topTerminal = SStackTopTerminal(sstack);
+    DebugFPrintf(stdout, "\nTop terminal index = [%d]\n\nTop terminal:\n", topTerminal);
+    DebugFPrintSStackItem(stdout, &(sstack->stack[topTerminal]));
+
+    DStrFree(&dstr);
+    SymTableDispose(&symtable);
     Dispose_SStack(&sstack);
     return 0;
 }

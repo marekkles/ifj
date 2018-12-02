@@ -113,6 +113,11 @@ int SStackProcessTokenToItem(DStr_t *dstr, Token_t *token, SStackItem_t *resulti
 				resultingItem->terminal = TERMINAL_TERM;
 				resultingItem->dataType = STACK_NIL;
 			}
+			else
+			{
+				resultingItem->terminal = TERMINAL_END;
+				resultingItem->dataType = STACK_NIL;
+			}
 			break;
 		}
 		default:
@@ -125,7 +130,7 @@ int SStackProcessTokenToItem(DStr_t *dstr, Token_t *token, SStackItem_t *resulti
 	return PARSE_OK;
 }
 
-int SStackTopTerminal(SStack_t *Stack)
+int SStackTopTerminalIndex(SStack_t *Stack)
 {
 	for(int i = Stack->top; i >= 0; i--)
 	{
@@ -134,7 +139,16 @@ int SStackTopTerminal(SStack_t *Stack)
 	}
 	return -1;
 }
-int SStackTopLT(SStack_t *Stack)
+
+SStackItem_t *SStackTopTerminal(SStack_t *Stack)
+{
+	int topTerminalIndex = SStackTopTerminalIndex(Stack);
+	if(topTerminalIndex != -1)
+		return &(Stack->stack[topTerminalIndex]); 
+	return NULL;
+}
+
+int SStackTopLTIndex(SStack_t *Stack)
 {
 	for(int i = Stack->top; i >= 0; i--)
 	{
@@ -143,19 +157,312 @@ int SStackTopLT(SStack_t *Stack)
 	}
 	return -1;
 }
+
+SStackItem_t *SStackTopLT(SStack_t *Stack)
+{
+	int topLTIndex = SStackTopLTIndex(Stack);
+	if(topLTIndex != -1)
+		return &(Stack->stack[topLTIndex]); 
+	return NULL;
+}
+
 int SStackTopTerminalAddLT(SStack_t *Stack)
 {
-	int topTerminalIndex = SStackTopTerminal(Stack);
-	if(topTerminalIndex == -1)
-		return -1;
-	Stack->stack[topTerminalIndex].isLessThan = true;
-	return topTerminalIndex;
+	SStackItem_t *topTerminal = SStackTopTerminal(Stack);
+	if(topTerminal == NULL)
+		return PARSE_OTHER;
+	topTerminal->isLessThan = true;
+	return PARSE_OK;
 }
-int SStackReduceByRule(SStack_t** Stack, int ltIndex)
+
+enum {ITEMS_ARE_INT, ITEMS_ARE_DOUBLE, ITEMS_ARE_DOUBLE_INT, //Integer double combinations
+      ITEMS_ARE_STRING, //String (integer, double) combinations
+	  ITEMS_ARE_SYMBOL_INT, ITEMS_ARE_SYMBOL_DOUBLE, //Symbols integer double combinations
+	  ITEMS_ARE_SYMBOL_STRING, //Symbols string (integer. double) combinations
+	  ITEMS_ARE_SYMBOL_UNDEFINED, ITEMS_ARE_OTHER //Other combinations of symbols
+	 };
+
+static int SStackWhatAreItems(SStackItem_t *item1, SStackItem_t *item2)
+{
+	if(item1->dataType == STACK_INT && item2->dataType == STACK_INT)
+		return ITEMS_ARE_INT;
+	else if(item1->dataType == STACK_DOUBLE && item2->dataType == STACK_DOUBLE)
+		return ITEMS_ARE_DOUBLE;
+	else if((item1->dataType == STACK_DOUBLE || item1->dataType == STACK_INT) &&
+	        (item2->dataType == STACK_DOUBLE || item2->dataType == STACK_INT))
+		return ITEMS_ARE_DOUBLE_INT;
+	else if(item1->dataType == STACK_STRING && item2->dataType == STACK_STRING)
+		return ITEMS_ARE_STRING;
+	
+	return ITEMS_ARE_OTHER;
+}
+static double SStackGetItemDoubleValue(SStackItem_t *item)
+{
+	if(item->dataType == STACK_INT)
+		return (double)item->data.intValue;
+	return item->data.doubleValue;
+}
+
+
+static int SStackRuleAddition(SStack_t *Stack, int startingIndex)
+{
+	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
+	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
+	int itemsType = SStackWhatAreItems(item1, item2);
+	switch(itemsType)
+	{
+		case ITEMS_ARE_INT:
+		{
+			item1->data.intValue += item2->data.intValue;
+			break;
+		}
+		case ITEMS_ARE_DOUBLE:
+		{
+			item1->data.doubleValue += item2->data.doubleValue;
+			break;
+		}
+		case ITEMS_ARE_DOUBLE_INT:
+		{
+			double doubleValue1 = SStackGetItemDoubleValue(item1);
+			double doubleValue2 = SStackGetItemDoubleValue(item2);
+			item1->dataType = STACK_DOUBLE;
+			item1->data.doubleValue = doubleValue1 + doubleValue2;
+			break;
+		}
+		case ITEMS_ARE_STRING:
+		{
+			int stringLength = strlen(item1->data.string) + strlen(item2->data.string) + 1;
+			char *newString = realloc(item1->data.string, stringLength * sizeof(char));
+			if(newString == NULL)
+				return PARSE_INT_ERR;
+			
+			item1->data.string = newString;
+			strcat(item1->data.string, item2->data.string);
+			SStackFreeString(item2->data.string);
+			break;
+		}
+		default:
+		{
+			return PARSE_TYPE_COMP;
+		}
+	}
+
+	Stack->top = Stack->top - 2;
+	return PARSE_OK;
+}
+static int SStackRuleSubtraction(SStack_t *Stack, int startingIndex)
+{
+	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
+	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
+	int itemsType = SStackWhatAreItems(item1, item2);
+	switch(itemsType)
+	{
+		case ITEMS_ARE_INT:
+		{
+			item1->data.intValue -= item2->data.intValue;
+			break;
+		}
+		case ITEMS_ARE_DOUBLE:
+		{
+			item1->data.doubleValue -= item2->data.doubleValue;
+			break;
+		}
+		case ITEMS_ARE_DOUBLE_INT:
+		{
+			double doubleValue1 = SStackGetItemDoubleValue(item1);
+			double doubleValue2 = SStackGetItemDoubleValue(item2);
+			item1->dataType = STACK_DOUBLE;
+			item1->data.doubleValue = doubleValue1 - doubleValue2;
+			break;
+		}
+		default:
+			return PARSE_TYPE_COMP;
+	}
+	Stack->top = Stack->top - 2;
+	return PARSE_OK;
+}
+static int SStackRuleMultiplication(SStack_t *Stack, int startingIndex)
+{
+	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
+	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
+	int itemsType = SStackWhatAreItems(item1, item2);
+	switch(itemsType)
+	{
+		case ITEMS_ARE_INT:
+		{
+			item1->data.intValue *= item2->data.intValue;
+			break;
+		}
+		case ITEMS_ARE_DOUBLE:
+		{
+			item1->data.doubleValue *= item2->data.doubleValue;
+			break;
+		}
+		case ITEMS_ARE_DOUBLE_INT:
+		{
+			double doubleValue1 = SStackGetItemDoubleValue(item1);
+			double doubleValue2 = SStackGetItemDoubleValue(item2);
+			item1->dataType = STACK_DOUBLE;
+			item1->data.doubleValue = doubleValue1 * doubleValue2;
+			break;
+		}
+		default:
+			return PARSE_TYPE_COMP;
+	}
+	Stack->top = Stack->top - 2;
+	return PARSE_OK;
+}
+static int SStackRuleDivision(SStack_t *Stack, int startingIndex)
+{
+	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
+	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
+	int itemsType = SStackWhatAreItems(item1, item2);
+
+	if((item2->dataType == STACK_DOUBLE && item2->data.doubleValue == 0) || 
+	   (item2->dataType == STACK_INT && item2->data.intValue == 0))
+		return PARSE_ZERO_DIV;
+	
+	switch(itemsType)
+	{
+		case ITEMS_ARE_INT:
+		{
+			item1->data.intValue /= item2->data.intValue;
+			break;
+		}
+		case ITEMS_ARE_DOUBLE:
+		{
+			item1->data.doubleValue /= item2->data.doubleValue;
+			break;
+		}
+		case ITEMS_ARE_DOUBLE_INT:
+		{
+			double doubleValue1 = SStackGetItemDoubleValue(item1);
+			double doubleValue2 = SStackGetItemDoubleValue(item2);
+			item1->dataType = STACK_DOUBLE;
+			item1->data.doubleValue = doubleValue1 / doubleValue2;
+			break;
+		}
+		default:
+			return PARSE_TYPE_COMP;
+	}
+	Stack->top = Stack->top - 2;
+	return PARSE_OK;
+}
+static int SStackRuleIsLesserThan(SStack_t *Stack, int startingIndex)
 {
 
-	
 }
+static int SStackRuleIsLesserEqual(SStack_t *Stack, int startingIndex)
+{
+
+}
+static int SStackRuleIsGreaterThan(SStack_t *Stack, int startingIndex)
+{
+
+}
+static int SStackRuleIsGreaterEqual(SStack_t *Stack, int startingIndex)
+{
+
+}
+static int SStackRuleIsEqual(SStack_t *Stack, int startingIndex)
+{
+
+}
+static int SStackRuleIsNotEqual(SStack_t *Stack, int startingIndex)
+{
+
+}
+static int SStackRuleTerm(SStack_t *Stack, int startingIndex)
+{
+	Stack->stack[startingIndex].isNonterminal = true;
+	return PARSE_OK;
+}
+static int SStackRuleBrackets(SStack_t *Stack, int startingIndex)
+{
+	Stack->stack[startingIndex] = Stack->stack[startingIndex+1];
+	Stack->top = Stack->top - 2;
+	return PARSE_OK;
+}
+int SStackUseRule(SStack_t *Stack, int startingIndex)
+{
+	if(startingIndex+2 == Stack->top && 
+	   Stack->stack[startingIndex].isNonterminal && 
+	   Stack->stack[startingIndex+1].isNonterminal == false && 
+	   Stack->stack[startingIndex+2].isNonterminal)
+	{//RULE E -> E [+, -, *, /, <=, >=, <, >, !=, ==] E
+		switch(Stack->stack[startingIndex+1].terminal)
+		{
+			case TERMINAL_COMPARISON:
+			case TERMINAL_MULT_DIVIDE:
+			case TERMINAL_PLUS_MINUS:
+			case TERMINAL_NOT_EQUAL:
+			{
+				switch(Stack->stack[startingIndex+1].data.operation)
+				{
+					case TO_ADD:
+						return SStackRuleAddition(Stack, startingIndex);
+					case TO_SUBTRACT:
+						return SStackRuleSubtraction(Stack, startingIndex);
+					case TO_MULTIPLY:
+						return SStackRuleMultiplication(Stack, startingIndex);
+					case TO_DIVIDE:
+						return SStackRuleDivision(Stack, startingIndex);
+					case TO_LESSER_THAN:
+						return SStackRuleIsLesserThan(Stack, startingIndex);
+					case TO_LESSER_EQUAL_THAN:
+						return SStackRuleIsLesserEqual(Stack, startingIndex);
+					case TO_GREATER_THAN:
+						return SStackRuleIsGreaterThan(Stack, startingIndex);
+					case TO_GREATER_EQUAL_THAN:
+						return SStackRuleIsGreaterEqual(Stack, startingIndex);
+					case TO_EQUAL_TO:
+						return SStackRuleIsEqual(Stack, startingIndex);
+					case TO_NOT_EQUAL_TO:
+						return SStackRuleIsNotEqual(Stack, startingIndex);
+					default:
+						return PARSE_INT_ERR;
+				}
+				break;
+			}
+			default:
+			{
+				return PARSE_SYN_ERR;
+				break;
+			}
+		}
+	}
+	else if (
+	   startingIndex+2 == Stack->top &&
+	   Stack->stack[startingIndex].isNonterminal == false &&
+	   Stack->stack[startingIndex].terminal == TERMINAL_LEFT_BRACKET &&
+	   Stack->stack[startingIndex+1].isNonterminal == true &&
+	   Stack->stack[startingIndex+2].isNonterminal == false &&
+	   Stack->stack[startingIndex+2].terminal == TERMINAL_RIGHT_BRACKET)
+	{//Rule E -> ( E )
+		return SStackRuleBrackets(Stack, startingIndex);
+	}
+	else if (
+	   startingIndex == Stack->top &&
+	   Stack->stack[startingIndex].isNonterminal == false &&
+	   Stack->stack[startingIndex].terminal == TERMINAL_TERM)
+	{//Rule E -> [id, int, float, string, nil, bool]
+		return SStackRuleTerm(Stack, startingIndex);
+	}
+	else
+		return PARSE_SYN_ERR;
+}
+int SStackReduceByRule(SStack_t *Stack)
+{
+	int topLTIndex = SStackTopLTIndex(Stack);
+	SStackItem_t *topLT = SStackTopLT(Stack);
+	int startingIndex = topLTIndex + 1;
+	topLT->isLessThan = 0;
+	return SStackUseRule(Stack, startingIndex);
+}
+
+
+
+
 int SStackPushEnd(SStack_t** Stack)
 {
 	SStackItem_t currentStackItem;
@@ -186,13 +493,15 @@ ExpressionPrecedence_t SStackGetExpessionPrecedence(SStack_t *stack, SStackItem_
 		{ PRE_LT, PRE_LT, PRE_LT, PRE_LT, PRE_LT, PRE_EQ, PRE_LT, PRE_NT},  // (
 		{ PRE_GT, PRE_GT, PRE_GT, PRE_GT, PRE_NT, PRE_GT, PRE_NT, PRE_GT},  // )
 		{ PRE_GT, PRE_GT, PRE_GT, PRE_GT, PRE_NT, PRE_GT, PRE_NT, PRE_GT},  // id int float sting nil
-		{ PRE_LT, PRE_LT, PRE_LT, PRE_LT, PRE_LT, PRE_NT, PRE_LT, PRE_LT},  // $
+		{ PRE_LT, PRE_LT, PRE_LT, PRE_LT, PRE_LT, PRE_NT, PRE_LT, PRE_GT},  // $
 	};
-	int topTerminal = SStackTopTerminal(stack);
+	SStackItem_t *topTerminal= SStackTopTerminal(stack);
 
-	int tableIndex = stack->stack[topTerminal].terminal;
+	int stackTopTableIndex = topTerminal->terminal;
+	int readItemTableIndex = stackItem->terminal;
+	ExpressionPrecedence_t predecence = precedenceTable[stackTopTableIndex][readItemTableIndex];
 
-	return precedenceTable[stackItem->terminal][tableIndex];
+	return predecence;
 }
 
 
@@ -231,7 +540,6 @@ int Push_SStack(SStack_t **Stack, SStackItem_t *Item)
 
 void Pop_SStack (SStack_t* PStack) 
 {
-
 	if (PStack->top == -1) {
 		return; //underflow
 	}
