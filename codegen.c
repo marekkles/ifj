@@ -123,20 +123,34 @@ int CodeInitialize(void)
     "DEFVAR GF@%operand1type\n"\
     "DEFVAR GF@%operand2type\n"\
     "JUMP $$main\n"\
+    ""\
     "LABEL $$operand1ToFloat\n"\
     "JUMPIFNEQ $$operand1ToFloatReturn GF@%operand1type string@int\n"\
     "INT2FLOAT GF@%operand1 GF@%operand1\n"\
     "LABEL $$operand1ToFloatReturn\n"\
     "TYPE GF@%operand1type GF@%operand1\n"\
     "RETURN\n"\
+    ""\
     "LABEL $$operand2ToFloat\n"\
     "JUMPIFNEQ $$operand2ToFloatReturn GF@%operand2type string@int\n"\
     "INT2FLOAT GF@%operand2 GF@%operand2\n"\
     "LABEL $$operand2ToFloatReturn\n"\
     "TYPE GF@%operand2type GF@%operand2\n"\
     "RETURN\n"\
+    ""\
     "LABEL $$operandNumberCompatibility\n"\
     "JUMPIFNEQ $$compatibilityError GF@%operand1type GF@%operand2type\n"\
+    "JUMPIFEQ $$compatibilityError GF@%operand1type string@string\n"\
+    "JUMPIFEQ $$compatibilityError GF@%operand1type string@bool\n"\
+    "JUMPIFEQ $$compatibilityError GF@%operand1type string@nil\n"\
+    "RETURN\n"\
+    ""\
+    "LABEL $$operandCompareCompatibility\n"\
+    "JUMPIFNEQ $$compatibilityError GF@%operand1type GF@%operand2type\n"\
+    "JUMPIFEQ $$compatibilityError GF@%operand1type string@bool\n"\
+    "RETURN\n"\
+    ""\
+    "LABEL $$operandAdditionCompatibility\n"\
     "JUMPIFEQ $$compatibilityError GF@%operand1type string@bool\n"\
     "JUMPIFEQ $$compatibilityError GF@%operand1type string@nil\n"\
     "RETURN\n"\

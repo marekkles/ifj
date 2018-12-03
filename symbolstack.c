@@ -328,7 +328,7 @@ static int SStackRuleAddition(SStack_t *Stack, int startingIndex, int *temporary
 			//LABEL $$operation[uniqueOperationId]compatibility
 			return_value |= CodeAddTextToBody("\nLABEL ");
 			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
-			return_value |= CodeAddTextToBody("\nCALL $$operandNumberCompatibility");
+			return_value |= CodeAddTextToBody("\nCALL $$operandAdditionCompatibility");
 			return_value |= CodeAddTextToBody("\nADD ");
 			return_value |= CodeAddTempVariable(*temporaryVariableCount);
 			return_value |= CodeAddTextToBody(" GF@%operand1 GF@%operand2");
@@ -574,7 +574,15 @@ static int SStackRuleIsLesserThan(SStack_t *Stack, int startingIndex, int *tempo
 			item1->data.boolValue = (doubleValue1 < doubleValue1);
 			break;
 		}
-		case C_DOUBLE_VAR: case C_INT_VAR: case C_VAR_VAR:
+		case C_STRING_STRING:
+		{
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (strcmp(item1->data.string, item2->data.string) < 0);
+			SStackFreeString(item1->data.string);
+			SStackFreeString(item2->data.string);
+			break;
+		}
+		case C_DOUBLE_VAR: case C_INT_VAR: case C_STRING_VAR: case C_VAR_VAR:
 		{
 			(*temporaryVariableCount)++;
 			int uniqueOperationId = CodeGetUniqueOperation();
@@ -592,7 +600,7 @@ static int SStackRuleIsLesserThan(SStack_t *Stack, int startingIndex, int *tempo
 			//LABEL $$operation[uniqueOperationId]compatibility
 			return_value |= CodeAddTextToBody("\nLABEL ");
 			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
-			return_value |= CodeAddTextToBody("\nCALL $$operandNumberCompatibility");
+			return_value |= CodeAddTextToBody("\nCALL $$operandCompareCompatibility");
 			return_value |= CodeAddTextToBody("\nLT ");
 			return_value |= CodeAddTempVariable(*temporaryVariableCount);
 			return_value |= CodeAddTextToBody(" GF@%operand1 GF@%operand2");
@@ -632,7 +640,15 @@ static int SStackRuleIsLesserEqual(SStack_t *Stack, int startingIndex, int *temp
 			item1->data.boolValue = (doubleValue1 <= doubleValue1);
 			break;
 		}
-		case C_DOUBLE_VAR: case C_INT_VAR: case C_VAR_VAR:
+		case C_STRING_STRING:
+		{
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (strcmp(item1->data.string, item2->data.string) <= 0);
+			SStackFreeString(item1->data.string);
+			SStackFreeString(item2->data.string);
+			break;
+		}
+		case C_DOUBLE_VAR: case C_INT_VAR: case C_STRING_VAR: case C_VAR_VAR:
 		{
 			(*temporaryVariableCount)++;
 			int uniqueOperationId = CodeGetUniqueOperation();
@@ -650,7 +666,7 @@ static int SStackRuleIsLesserEqual(SStack_t *Stack, int startingIndex, int *temp
 			//LABEL $$operation[uniqueOperationId]compatibility
 			return_value |= CodeAddTextToBody("\nLABEL ");
 			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
-			return_value |= CodeAddTextToBody("\nCALL $$operandNumberCompatibility");
+			return_value |= CodeAddTextToBody("\nCALL $$operandCompareCompatibility");
 			return_value |= CodeAddTextToBody("\nGT ");
 			return_value |= CodeAddTempVariable(*temporaryVariableCount);
 			return_value |= CodeAddTextToBody(" GF@%operand1 GF@%operand2");
@@ -694,7 +710,15 @@ static int SStackRuleIsGreaterThan(SStack_t *Stack, int startingIndex, int *temp
 			item1->data.boolValue = (doubleValue1 > doubleValue1);
 			break;
 		}
-		case C_DOUBLE_VAR: case C_INT_VAR: case C_VAR_VAR:
+		case C_STRING_STRING:
+		{
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (strcmp(item1->data.string, item2->data.string) > 0);
+			SStackFreeString(item1->data.string);
+			SStackFreeString(item2->data.string);
+			break;
+		}
+		case C_DOUBLE_VAR: case C_INT_VAR: case C_STRING_VAR: case C_VAR_VAR:
 		{
 			(*temporaryVariableCount)++;
 			int uniqueOperationId = CodeGetUniqueOperation();
@@ -712,7 +736,7 @@ static int SStackRuleIsGreaterThan(SStack_t *Stack, int startingIndex, int *temp
 			//LABEL $$operation[uniqueOperationId]compatibility
 			return_value |= CodeAddTextToBody("\nLABEL ");
 			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
-			return_value |= CodeAddTextToBody("\nCALL $$operandNumberCompatibility");
+			return_value |= CodeAddTextToBody("\nCALL $$operandCompareCompatibility");
 			return_value |= CodeAddTextToBody("\nGT ");
 			return_value |= CodeAddTempVariable(*temporaryVariableCount);
 			return_value |= CodeAddTextToBody(" GF@%operand1 GF@%operand2");
@@ -752,7 +776,15 @@ static int SStackRuleIsGreaterEqual(SStack_t *Stack, int startingIndex, int *tem
 			item1->data.boolValue = (doubleValue1 >= doubleValue1);
 			break;
 		}
-		case C_DOUBLE_VAR: case C_INT_VAR: case C_VAR_VAR:
+		case C_STRING_STRING:
+		{
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (strcmp(item1->data.string, item2->data.string) >= 0);
+			SStackFreeString(item1->data.string);
+			SStackFreeString(item2->data.string);
+			break;
+		}
+		case C_DOUBLE_VAR: case C_INT_VAR: case C_STRING_VAR: case C_VAR_VAR:
 		{
 			(*temporaryVariableCount)++;
 			int uniqueOperationId = CodeGetUniqueOperation();
@@ -770,7 +802,7 @@ static int SStackRuleIsGreaterEqual(SStack_t *Stack, int startingIndex, int *tem
 			//LABEL $$operation[uniqueOperationId]compatibility
 			return_value |= CodeAddTextToBody("\nLABEL ");
 			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
-			return_value |= CodeAddTextToBody("\nCALL $$operandNumberCompatibility");
+			return_value |= CodeAddTextToBody("\nCALL $$operandCompareCompatibility");
 			return_value |= CodeAddTextToBody("\nLT ");
 			return_value |= CodeAddTempVariable(*temporaryVariableCount);
 			return_value |= CodeAddTextToBody(" GF@%operand1 GF@%operand2");
@@ -791,6 +823,7 @@ static int SStackRuleIsEqual(SStack_t *Stack, int startingIndex, int *temporaryV
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
 	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
 	int itemsType = SStackWhatAreItems(item1, item2);
+	int return_value = PARSE_OK;
 	switch(itemsType)
 	{
 		case C_INT_INT:
@@ -813,19 +846,55 @@ static int SStackRuleIsEqual(SStack_t *Stack, int startingIndex, int *temporaryV
 			item1->data.boolValue = (doubleValue1 == doubleValue1);
 			break;
 		}
-		case C_DOUBLE_VAR:
+		case C_STRING_STRING:
 		{
-			(*temporaryVariableCount)++;
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (strcmp(item1->data.string, item2->data.string) == 0);
+			SStackFreeString(item1->data.string);
+			SStackFreeString(item2->data.string);
 			break;
 		}
-		case C_INT_VAR:
+		case C_NIL_NIL:
 		{
-			(*temporaryVariableCount)++;
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = true;
 			break;
 		}
-		case C_VAR_VAR:
+		case C_NIL_DOUBLE: case C_NIL_INT: case C_NIL_STRING:
+		{
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = false;
+			break;
+		}
+		case C_DOUBLE_VAR: case C_STRING_VAR: case C_NIL_VAR: case C_INT_VAR: case C_VAR_VAR:
 		{
 			(*temporaryVariableCount)++;
+			int uniqueOperationId = CodeGetUniqueOperation();
+			return_value |= CodeAddTextToBody("\nMOVE GF@%operand1 ");
+			return_value |= CodeAddSStackItem(item1);
+			return_value |= CodeAddTextToBody("\nMOVE GF@%operand2 ");
+			return_value |= CodeAddSStackItem(item2);
+			return_value |= CodeAddTextToBody("\nTYPE GF@%operand1type GF@%operand1");
+			return_value |= CodeAddTextToBody("\nTYPE GF@%operand2type GF@%operand2");
+			return_value |= CodeAddTextToBody("\nJUMPIFEQ ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "");
+			return_value |= CodeAddTextToBody(" GF@%operand1type GF@%operand2type");
+
+			return_value |= CodeAddTextToBody("\nMOVE ");
+			return_value |= CodeAddTempVariable(*temporaryVariableCount);
+			return_value |= CodeAddTextToBody(" ");
+			return_value |= CodeAddBool(false);
+			return_value |= CodeAddTextToBody("\nJUMP ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "end");
+
+			//LABEL $$operation[uniqueOperationId]compatibility
+			return_value |= CodeAddTextToBody("\nLABEL ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "");
+			return_value |= CodeAddTextToBody("\nEQ ");
+			return_value |= CodeAddTempVariable(*temporaryVariableCount);
+			return_value |= CodeAddTextToBody(" GF@%operand1 GF@%operand2");
+			return_value |= CodeAddTextToBody("\nLABEL ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "end");
 			break;
 		}
 		default:
@@ -839,18 +908,19 @@ static int SStackRuleIsNotEqual(SStack_t *Stack, int startingIndex, int *tempora
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
 	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
 	int itemsType = SStackWhatAreItems(item1, item2);
+	int return_value = PARSE_OK;
 	switch(itemsType)
 	{
 		case C_INT_INT:
 		{
 			item1->dataType = STACK_BOOL;
-			item1->data.boolValue = (item1->data.intValue == item2->data.intValue);
+			item1->data.boolValue = (item1->data.intValue != item2->data.intValue);
 			break;
 		}
 		case C_DOUBLE_DOUBLE:
 		{
 			item1->dataType = STACK_BOOL;
-			item1->data.boolValue = (item1->data.doubleValue == item2->data.doubleValue);
+			item1->data.boolValue = (item1->data.doubleValue != item2->data.doubleValue);
 			break;
 		}
 		case C_INT_DOUBLE:
@@ -858,29 +928,66 @@ static int SStackRuleIsNotEqual(SStack_t *Stack, int startingIndex, int *tempora
 			double doubleValue1 = SStackGetItemDoubleValue(item1);
 			double doubleValue2 = SStackGetItemDoubleValue(item2);
 			item1->dataType = STACK_BOOL;
-			item1->data.boolValue = (doubleValue1 == doubleValue1);
+			item1->data.boolValue = (doubleValue1 != doubleValue1);
 			break;
 		}
-		case C_DOUBLE_VAR:
+		case C_STRING_STRING:
 		{
-			(*temporaryVariableCount)++;
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (strcmp(item1->data.string, item2->data.string) != 0);
+			SStackFreeString(item1->data.string);
+			SStackFreeString(item2->data.string);
 			break;
 		}
-		case C_INT_VAR:
+		case C_NIL_NIL:
 		{
-			(*temporaryVariableCount)++;
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = false;
 			break;
 		}
-		case C_VAR_VAR:
+		case C_NIL_DOUBLE: case C_NIL_INT: case C_NIL_STRING:
+		{
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = true;
+			break;
+		}
+		case C_DOUBLE_VAR: case C_STRING_VAR: case C_NIL_VAR: case C_INT_VAR: case C_VAR_VAR:
 		{
 			(*temporaryVariableCount)++;
+			int uniqueOperationId = CodeGetUniqueOperation();
+			return_value |= CodeAddTextToBody("\nMOVE GF@%operand1 ");
+			return_value |= CodeAddSStackItem(item1);
+			return_value |= CodeAddTextToBody("\nMOVE GF@%operand2 ");
+			return_value |= CodeAddSStackItem(item2);
+			return_value |= CodeAddTextToBody("\nTYPE GF@%operand1type GF@%operand1");
+			return_value |= CodeAddTextToBody("\nTYPE GF@%operand2type GF@%operand2");
+			return_value |= CodeAddTextToBody("\nJUMPIFEQ ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "");
+			return_value |= CodeAddTextToBody(" GF@%operand1type GF@%operand2type");
+
+			return_value |= CodeAddTextToBody("\nMOVE ");
+			return_value |= CodeAddTempVariable(*temporaryVariableCount);
+			return_value |= CodeAddTextToBody(" ");
+			return_value |= CodeAddBool(true);
+			return_value |= CodeAddTextToBody("\nJUMP ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "end");
+
+			//LABEL $$operation[uniqueOperationId]compatibility
+			return_value |= CodeAddTextToBody("\nLABEL ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "");
+			return_value |= CodeAddTextToBody("\nEQ ");
+			return_value |= CodeAddTempVariable(*temporaryVariableCount);
+			return_value |= CodeAddTextToBody(" GF@%operand1 GF@%operand2");
+			return_value |= CodeAddTextToBody("\nNOT ");
+			return_value |= CodeAddTempVariable(*temporaryVariableCount);
+			return_value |= CodeAddTextToBody(" ");
+			return_value |= CodeAddTempVariable(*temporaryVariableCount);
+			return_value |= CodeAddTextToBody("\nLABEL ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "end");
 			break;
 		}
 		default:
-		{
-			(*temporaryVariableCount)++;
-			break;
-		}
+			return PARSE_TYPE_COMP;
 	}
 	Stack->top = Stack->top - 2;
 	return PARSE_OK;
