@@ -1,14 +1,8 @@
 
-i = 10
-new_string = substr("abcd efgh ijkl mnop", i, 20)
-new_string_len = length(new_string)
+while 0 == 1 <= 2 do
 
+end
 
-print new_string, "\nNew string length = ", new_string_len
+while 3 < 1.0 do
 
-
-integer = inputi
-float = inputf
-string = inputs
-
-print integer, "\n", float, "\n", string
+end

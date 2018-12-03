@@ -79,6 +79,7 @@ typedef struct {
 
     int whileCount;
     int ifCount;
+    int operationCount;
 } CodeInstructionList_t;
 
 int CodeInitialize(void);
@@ -113,6 +114,7 @@ int CodeAddFunctionCall(const char *functionName);
 
 int CodeGetUniqueWhile();
 int CodeGetUniqueIf();
+int CodeGetUniqueOperation();
 
 int CodeAddWhileStart(int uniqueWhileNumber);
 int CodeAddWhileBody(int uniqueWhileNumber);

@@ -182,19 +182,60 @@ enum {ITEMS_ARE_INT, ITEMS_ARE_DOUBLE, ITEMS_ARE_DOUBLE_INT, //Integer double co
 	  ITEMS_ARE_SYMBOL_UNDEFINED, ITEMS_ARE_OTHER //Other combinations of symbols
 	 };
 
+
+typedef enum {
+	C_NIL_NIL, C_INT_INT, C_DOUBLE_DOUBLE, C_STRING_STRING, C_VAR_VAR,
+	C_NIL_INT, C_NIL_DOUBLE, C_NIL_STRING, C_NIL_VAR,
+	C_INT_DOUBLE, C_INT_STRING, C_INT_VAR,
+	C_DOUBLE_STRING, C_DOUBLE_VAR,
+	C_STRING_VAR,
+	C_OTHER
+} OperandsCombinations_t;
+
 static int SStackWhatAreItems(SStackItem_t *item1, SStackItem_t *item2)
 {
-	if(item1->dataType == STACK_INT && item2->dataType == STACK_INT)
-		return ITEMS_ARE_INT;
+	OperandsCombinations_t return_value = C_OTHER;
+	if(item1->dataType == STACK_NIL && item2->dataType == STACK_NIL)
+		return_value = C_NIL_NIL;
+	else if(item1->dataType == STACK_INT && item2->dataType == STACK_INT)
+		return_value = C_INT_INT;
 	else if(item1->dataType == STACK_DOUBLE && item2->dataType == STACK_DOUBLE)
-		return ITEMS_ARE_DOUBLE;
+		return_value = C_DOUBLE_DOUBLE;
+	else if(item1->dataType == STACK_STRING && item2->dataType == STACK_STRING)
+		return_value = C_STRING_STRING;
+	else if(item1->dataType == STACK_STRING && item2->dataType == STACK_STRING)
+		return_value = C_VAR_VAR;
+	else if((item1->dataType == STACK_INT || item1->dataType == STACK_NIL) &&
+	        (item2->dataType == STACK_INT || item2->dataType == STACK_NIL))
+		return_value = C_NIL_INT;
+	else if((item1->dataType == STACK_DOUBLE || item1->dataType == STACK_NIL) &&
+	        (item2->dataType == STACK_DOUBLE || item2->dataType == STACK_NIL))
+		return_value = C_NIL_DOUBLE;
+	else if((item1->dataType == STACK_STRING || item1->dataType == STACK_NIL) &&
+	        (item2->dataType == STACK_STRING || item2->dataType == STACK_NIL))
+		return_value = C_NIL_STRING;
+	else if((item1->dataType == STACK_SYMBOL || item1->dataType == STACK_NIL) &&
+	        (item2->dataType == STACK_SYMBOL || item2->dataType == STACK_NIL))
+		return_value = C_NIL_VAR;
 	else if((item1->dataType == STACK_DOUBLE || item1->dataType == STACK_INT) &&
 	        (item2->dataType == STACK_DOUBLE || item2->dataType == STACK_INT))
-		return ITEMS_ARE_DOUBLE_INT;
-	else if(item1->dataType == STACK_STRING && item2->dataType == STACK_STRING)
-		return ITEMS_ARE_STRING;
-	
-	return ITEMS_ARE_OTHER;
+		return_value = C_INT_DOUBLE;
+	else if((item1->dataType == STACK_STRING || item1->dataType == STACK_INT) &&
+	        (item2->dataType == STACK_STRING || item2->dataType == STACK_INT))
+		return_value = C_INT_STRING;
+	else if((item1->dataType == STACK_SYMBOL || item1->dataType == STACK_INT) &&
+	        (item2->dataType == STACK_SYMBOL || item2->dataType == STACK_INT))
+		return_value = C_INT_VAR;
+	else if((item1->dataType == STACK_STRING || item1->dataType == STACK_DOUBLE) &&
+	        (item2->dataType == STACK_STRING || item2->dataType == STACK_DOUBLE))
+		return_value = C_DOUBLE_STRING;
+	else if((item1->dataType == STACK_SYMBOL || item1->dataType == STACK_DOUBLE) &&
+	        (item2->dataType == STACK_SYMBOL || item2->dataType == STACK_DOUBLE))
+		return_value = C_DOUBLE_VAR;
+	else if((item1->dataType == STACK_SYMBOL || item1->dataType == STACK_STRING) &&
+	        (item2->dataType == STACK_SYMBOL || item2->dataType == STACK_STRING))
+		return_value = C_STRING_VAR;
+	return return_value;
 }
 static double SStackGetItemDoubleValue(SStackItem_t *item)
 {
@@ -204,24 +245,24 @@ static double SStackGetItemDoubleValue(SStackItem_t *item)
 }
 
 
-static int SStackRuleAddition(SStack_t *Stack, int startingIndex)
+static int SStackRuleAddition(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
 	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
 	int itemsType = SStackWhatAreItems(item1, item2);
 	switch(itemsType)
 	{
-		case ITEMS_ARE_INT:
+		case C_INT_INT:
 		{
 			item1->data.intValue += item2->data.intValue;
 			break;
 		}
-		case ITEMS_ARE_DOUBLE:
+		case C_DOUBLE_DOUBLE:
 		{
 			item1->data.doubleValue += item2->data.doubleValue;
 			break;
 		}
-		case ITEMS_ARE_DOUBLE_INT:
+		case C_INT_DOUBLE:
 		{
 			double doubleValue1 = SStackGetItemDoubleValue(item1);
 			double doubleValue2 = SStackGetItemDoubleValue(item2);
@@ -229,7 +270,7 @@ static int SStackRuleAddition(SStack_t *Stack, int startingIndex)
 			item1->data.doubleValue = doubleValue1 + doubleValue2;
 			break;
 		}
-		case ITEMS_ARE_STRING:
+		case C_STRING_STRING:
 		{
 			int stringLength = strlen(item1->data.string) + strlen(item2->data.string) + 1;
 			char *newString = realloc(item1->data.string, stringLength * sizeof(char));
@@ -241,6 +282,40 @@ static int SStackRuleAddition(SStack_t *Stack, int startingIndex)
 			SStackFreeString(item2->data.string);
 			break;
 		}
+		case C_STRING_VAR:
+		{
+			if(item1->dataType == STACK_STRING)
+			{
+				//Test compatibility op 2, concatenate
+			}
+			else
+			{
+				//Test compatibility op 1, concatenate
+			}
+			break;
+		}
+		case C_DOUBLE_VAR:
+		{
+			if(item1->dataType == STACK_DOUBLE)
+			{
+				//Try convert op 2, test compatibility, add
+			}
+			else
+			{
+				//Try convert op 1, test compatibility, add
+			}
+			break;
+		}
+		case C_INT_VAR:
+		{
+			//Types not equal, Try convert op 1, Try convert op 2, test compatibility, add
+			//Else Test compatibility, add
+			break;
+		}
+		case C_VAR_VAR:
+		{
+			break;
+		}
 		default:
 		{
 			return PARSE_TYPE_COMP;
@@ -250,24 +325,24 @@ static int SStackRuleAddition(SStack_t *Stack, int startingIndex)
 	Stack->top = Stack->top - 2;
 	return PARSE_OK;
 }
-static int SStackRuleSubtraction(SStack_t *Stack, int startingIndex)
+static int SStackRuleSubtraction(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
 	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
 	int itemsType = SStackWhatAreItems(item1, item2);
 	switch(itemsType)
 	{
-		case ITEMS_ARE_INT:
+		case C_INT_INT:
 		{
 			item1->data.intValue -= item2->data.intValue;
 			break;
 		}
-		case ITEMS_ARE_DOUBLE:
+		case C_DOUBLE_DOUBLE:
 		{
 			item1->data.doubleValue -= item2->data.doubleValue;
 			break;
 		}
-		case ITEMS_ARE_DOUBLE_INT:
+		case C_INT_DOUBLE:
 		{
 			double doubleValue1 = SStackGetItemDoubleValue(item1);
 			double doubleValue2 = SStackGetItemDoubleValue(item2);
@@ -275,30 +350,42 @@ static int SStackRuleSubtraction(SStack_t *Stack, int startingIndex)
 			item1->data.doubleValue = doubleValue1 - doubleValue2;
 			break;
 		}
+		case C_DOUBLE_VAR:
+		{
+			break;
+		}
+		case C_INT_VAR:
+		{
+			break;
+		}
+		case C_VAR_VAR:
+		{
+			break;
+		}
 		default:
 			return PARSE_TYPE_COMP;
 	}
 	Stack->top = Stack->top - 2;
 	return PARSE_OK;
 }
-static int SStackRuleMultiplication(SStack_t *Stack, int startingIndex)
+static int SStackRuleMultiplication(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
 	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
 	int itemsType = SStackWhatAreItems(item1, item2);
 	switch(itemsType)
 	{
-		case ITEMS_ARE_INT:
+		case C_INT_INT:
 		{
 			item1->data.intValue *= item2->data.intValue;
 			break;
 		}
-		case ITEMS_ARE_DOUBLE:
+		case C_DOUBLE_DOUBLE:
 		{
 			item1->data.doubleValue *= item2->data.doubleValue;
 			break;
 		}
-		case ITEMS_ARE_DOUBLE_INT:
+		case C_INT_DOUBLE:
 		{
 			double doubleValue1 = SStackGetItemDoubleValue(item1);
 			double doubleValue2 = SStackGetItemDoubleValue(item2);
@@ -306,13 +393,25 @@ static int SStackRuleMultiplication(SStack_t *Stack, int startingIndex)
 			item1->data.doubleValue = doubleValue1 * doubleValue2;
 			break;
 		}
+		case C_DOUBLE_VAR:
+		{
+			break;
+		}
+		case C_INT_VAR:
+		{
+			break;
+		}
+		case C_VAR_VAR:
+		{
+			break;
+		}
 		default:
 			return PARSE_TYPE_COMP;
 	}
 	Stack->top = Stack->top - 2;
 	return PARSE_OK;
 }
-static int SStackRuleDivision(SStack_t *Stack, int startingIndex)
+static int SStackRuleDivision(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
 	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
@@ -324,22 +423,34 @@ static int SStackRuleDivision(SStack_t *Stack, int startingIndex)
 	
 	switch(itemsType)
 	{
-		case ITEMS_ARE_INT:
+		case C_INT_INT:
 		{
 			item1->data.intValue /= item2->data.intValue;
 			break;
 		}
-		case ITEMS_ARE_DOUBLE:
+		case C_DOUBLE_DOUBLE:
 		{
 			item1->data.doubleValue /= item2->data.doubleValue;
 			break;
 		}
-		case ITEMS_ARE_DOUBLE_INT:
+		case C_INT_DOUBLE:
 		{
 			double doubleValue1 = SStackGetItemDoubleValue(item1);
 			double doubleValue2 = SStackGetItemDoubleValue(item2);
 			item1->dataType = STACK_DOUBLE;
 			item1->data.doubleValue = doubleValue1 / doubleValue2;
+			break;
+		}
+		case C_DOUBLE_VAR:
+		{
+			break;
+		}
+		case C_INT_VAR:
+		{
+			break;
+		}
+		case C_VAR_VAR:
+		{
 			break;
 		}
 		default:
@@ -348,29 +459,275 @@ static int SStackRuleDivision(SStack_t *Stack, int startingIndex)
 	Stack->top = Stack->top - 2;
 	return PARSE_OK;
 }
-static int SStackRuleIsLesserThan(SStack_t *Stack, int startingIndex)
+static int SStackRuleIsLesserThan(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
-
+	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
+	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
+	int itemsType = SStackWhatAreItems(item1, item2);
+	switch(itemsType)
+	{
+		case C_INT_INT:
+		{
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (item1->data.intValue < item2->data.intValue);
+			break;
+		}
+		case C_DOUBLE_DOUBLE:
+		{
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (item1->data.doubleValue < item2->data.doubleValue);
+			break;
+		}
+		case C_INT_DOUBLE:
+		{
+			double doubleValue1 = SStackGetItemDoubleValue(item1);
+			double doubleValue2 = SStackGetItemDoubleValue(item2);
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (doubleValue1 < doubleValue1);
+			break;
+		}
+		case C_DOUBLE_VAR:
+		{
+			break;
+		}
+		case C_INT_VAR:
+		{
+			break;
+		}
+		case C_VAR_VAR:
+		{
+			break;
+		}
+		default:
+			return PARSE_TYPE_COMP;
+	}
+	Stack->top = Stack->top - 2;
+	return PARSE_OK;
 }
-static int SStackRuleIsLesserEqual(SStack_t *Stack, int startingIndex)
+static int SStackRuleIsLesserEqual(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
-
+	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
+	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
+	int itemsType = SStackWhatAreItems(item1, item2);
+	switch(itemsType)
+	{
+		case C_INT_INT:
+		{
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (item1->data.intValue <= item2->data.intValue);
+			break;
+		}
+		case C_DOUBLE_DOUBLE:
+		{
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (item1->data.doubleValue <= item2->data.doubleValue);
+			break;
+		}
+		case C_INT_DOUBLE:
+		{
+			double doubleValue1 = SStackGetItemDoubleValue(item1);
+			double doubleValue2 = SStackGetItemDoubleValue(item2);
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (doubleValue1 <= doubleValue1);
+			break;
+		}
+		case C_DOUBLE_VAR:
+		{
+			break;
+		}
+		case C_INT_VAR:
+		{
+			break;
+		}
+		case C_VAR_VAR:
+		{
+			break;
+		}
+		default:
+			return PARSE_TYPE_COMP;
+	}
+	Stack->top = Stack->top - 2;
+	return PARSE_OK;
 }
-static int SStackRuleIsGreaterThan(SStack_t *Stack, int startingIndex)
+static int SStackRuleIsGreaterThan(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
-
+	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
+	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
+	int itemsType = SStackWhatAreItems(item1, item2);
+	switch(itemsType)
+	{
+		case C_INT_INT:
+		{
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (item1->data.intValue > item2->data.intValue);
+			break;
+		}
+		case C_DOUBLE_DOUBLE:
+		{
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (item1->data.doubleValue > item2->data.doubleValue);
+			break;
+		}
+		case C_INT_DOUBLE:
+		{
+			double doubleValue1 = SStackGetItemDoubleValue(item1);
+			double doubleValue2 = SStackGetItemDoubleValue(item2);
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (doubleValue1 > doubleValue1);
+			break;
+		}
+		case C_DOUBLE_VAR:
+		{
+			break;
+		}
+		case C_INT_VAR:
+		{
+			break;
+		}
+		case C_VAR_VAR:
+		{
+			break;
+		}
+		default:
+			return PARSE_TYPE_COMP;
+	}
+	Stack->top = Stack->top - 2;
+	return PARSE_OK;
 }
-static int SStackRuleIsGreaterEqual(SStack_t *Stack, int startingIndex)
+static int SStackRuleIsGreaterEqual(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
-
+	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
+	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
+	int itemsType = SStackWhatAreItems(item1, item2);
+	switch(itemsType)
+	{
+		case C_INT_INT:
+		{
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (item1->data.intValue >= item2->data.intValue);
+			break;
+		}
+		case C_DOUBLE_DOUBLE:
+		{
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (item1->data.doubleValue >= item2->data.doubleValue);
+			break;
+		}
+		case C_INT_DOUBLE:
+		{
+			double doubleValue1 = SStackGetItemDoubleValue(item1);
+			double doubleValue2 = SStackGetItemDoubleValue(item2);
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (doubleValue1 >= doubleValue1);
+			break;
+		}
+		case C_DOUBLE_VAR:
+		{
+			break;
+		}
+		case C_INT_VAR:
+		{
+			break;
+		}
+		case C_VAR_VAR:
+		{
+			break;
+		}
+		default:
+			return PARSE_TYPE_COMP;
+	}
+	Stack->top = Stack->top - 2;
+	return PARSE_OK;
 }
-static int SStackRuleIsEqual(SStack_t *Stack, int startingIndex)
+static int SStackRuleIsEqual(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
-
+	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
+	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
+	int itemsType = SStackWhatAreItems(item1, item2);
+	switch(itemsType)
+	{
+		case C_INT_INT:
+		{
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (item1->data.intValue == item2->data.intValue);
+			break;
+		}
+		case C_DOUBLE_DOUBLE:
+		{
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (item1->data.doubleValue == item2->data.doubleValue);
+			break;
+		}
+		case C_INT_DOUBLE:
+		{
+			double doubleValue1 = SStackGetItemDoubleValue(item1);
+			double doubleValue2 = SStackGetItemDoubleValue(item2);
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (doubleValue1 == doubleValue1);
+			break;
+		}
+		case C_DOUBLE_VAR:
+		{
+			break;
+		}
+		case C_INT_VAR:
+		{
+			break;
+		}
+		case C_VAR_VAR:
+		{
+			break;
+		}
+		default:
+			return PARSE_TYPE_COMP;
+	}
+	Stack->top = Stack->top - 2;
+	return PARSE_OK;
 }
-static int SStackRuleIsNotEqual(SStack_t *Stack, int startingIndex)
+static int SStackRuleIsNotEqual(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
-
+	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
+	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
+	int itemsType = SStackWhatAreItems(item1, item2);
+	switch(itemsType)
+	{
+		case C_INT_INT:
+		{
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (item1->data.intValue == item2->data.intValue);
+			break;
+		}
+		case C_DOUBLE_DOUBLE:
+		{
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (item1->data.doubleValue == item2->data.doubleValue);
+			break;
+		}
+		case C_INT_DOUBLE:
+		{
+			double doubleValue1 = SStackGetItemDoubleValue(item1);
+			double doubleValue2 = SStackGetItemDoubleValue(item2);
+			item1->dataType = STACK_BOOL;
+			item1->data.boolValue = (doubleValue1 == doubleValue1);
+			break;
+		}
+		case C_DOUBLE_VAR:
+		{
+			break;
+		}
+		case C_INT_VAR:
+		{
+			break;
+		}
+		case C_VAR_VAR:
+		{
+			break;
+		}
+		default:
+			return PARSE_TYPE_COMP;
+	}
+	Stack->top = Stack->top - 2;
+	return PARSE_OK;
 }
 static int SStackRuleTerm(SStack_t *Stack, int startingIndex)
 {
@@ -383,7 +740,7 @@ static int SStackRuleBrackets(SStack_t *Stack, int startingIndex)
 	Stack->top = Stack->top - 2;
 	return PARSE_OK;
 }
-int SStackUseRule(SStack_t *Stack, int startingIndex)
+int SStackUseRule(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
 	if(startingIndex+2 == Stack->top && 
 	   Stack->stack[startingIndex].isNonterminal && 
@@ -397,28 +754,30 @@ int SStackUseRule(SStack_t *Stack, int startingIndex)
 			case TERMINAL_PLUS_MINUS:
 			case TERMINAL_NOT_EQUAL:
 			{
+				//Create return variable to reduce to
+
 				switch(Stack->stack[startingIndex+1].data.operation)
 				{
 					case TO_ADD:
-						return SStackRuleAddition(Stack, startingIndex);
+						return SStackRuleAddition(Stack, startingIndex, temporaryVariableCount);
 					case TO_SUBTRACT:
-						return SStackRuleSubtraction(Stack, startingIndex);
+						return SStackRuleSubtraction(Stack, startingIndex, temporaryVariableCount);
 					case TO_MULTIPLY:
-						return SStackRuleMultiplication(Stack, startingIndex);
+						return SStackRuleMultiplication(Stack, startingIndex, temporaryVariableCount);
 					case TO_DIVIDE:
-						return SStackRuleDivision(Stack, startingIndex);
+						return SStackRuleDivision(Stack, startingIndex, temporaryVariableCount);
 					case TO_LESSER_THAN:
-						return SStackRuleIsLesserThan(Stack, startingIndex);
+						return SStackRuleIsLesserThan(Stack, startingIndex, temporaryVariableCount);
 					case TO_LESSER_EQUAL_THAN:
-						return SStackRuleIsLesserEqual(Stack, startingIndex);
+						return SStackRuleIsLesserEqual(Stack, startingIndex, temporaryVariableCount);
 					case TO_GREATER_THAN:
-						return SStackRuleIsGreaterThan(Stack, startingIndex);
+						return SStackRuleIsGreaterThan(Stack, startingIndex, temporaryVariableCount);
 					case TO_GREATER_EQUAL_THAN:
-						return SStackRuleIsGreaterEqual(Stack, startingIndex);
+						return SStackRuleIsGreaterEqual(Stack, startingIndex, temporaryVariableCount);
 					case TO_EQUAL_TO:
-						return SStackRuleIsEqual(Stack, startingIndex);
+						return SStackRuleIsEqual(Stack, startingIndex, temporaryVariableCount);
 					case TO_NOT_EQUAL_TO:
-						return SStackRuleIsNotEqual(Stack, startingIndex);
+						return SStackRuleIsNotEqual(Stack, startingIndex, temporaryVariableCount);
 					default:
 						return PARSE_INT_ERR;
 				}
@@ -451,13 +810,13 @@ int SStackUseRule(SStack_t *Stack, int startingIndex)
 	else
 		return PARSE_SYN_ERR;
 }
-int SStackReduceByRule(SStack_t *Stack)
+int SStackReduceByRule(SStack_t *Stack, int *temporaryVariableCount)
 {
 	int topLTIndex = SStackTopLTIndex(Stack);
 	SStackItem_t *topLT = SStackTopLT(Stack);
 	int startingIndex = topLTIndex + 1;
 	topLT->isLessThan = 0;
-	return SStackUseRule(Stack, startingIndex);
+	return SStackUseRule(Stack, startingIndex, temporaryVariableCount);
 }
 
 
@@ -488,8 +847,8 @@ ExpressionPrecedence_t SStackGetExpessionPrecedence(SStack_t *stack, SStackItem_
 	//	|       |       |       |       |       |       |  nil  |       |
 		{ PRE_GT, PRE_GT, PRE_GT, PRE_GT, PRE_LT, PRE_GT, PRE_LT, PRE_GT},  // * /
 		{ PRE_LT, PRE_GT, PRE_GT, PRE_GT, PRE_LT, PRE_GT, PRE_LT, PRE_GT},  // + -
-		{ PRE_LT, PRE_LT, PRE_GT, PRE_GT, PRE_LT, PRE_GT, PRE_LT, PRE_GT},  // <= >= < >
-		{ PRE_LT, PRE_LT, PRE_LT, PRE_GT, PRE_LT, PRE_GT, PRE_LT, PRE_GT},  // != ==
+		{ PRE_LT, PRE_LT, PRE_NT, PRE_NT, PRE_LT, PRE_GT, PRE_LT, PRE_GT},  // <= >= < >
+		{ PRE_LT, PRE_LT, PRE_NT, PRE_NT, PRE_LT, PRE_GT, PRE_LT, PRE_GT},  // != ==
 		{ PRE_LT, PRE_LT, PRE_LT, PRE_LT, PRE_LT, PRE_EQ, PRE_LT, PRE_NT},  // (
 		{ PRE_GT, PRE_GT, PRE_GT, PRE_GT, PRE_NT, PRE_GT, PRE_NT, PRE_GT},  // )
 		{ PRE_GT, PRE_GT, PRE_GT, PRE_GT, PRE_NT, PRE_GT, PRE_NT, PRE_GT},  // id int float sting nil

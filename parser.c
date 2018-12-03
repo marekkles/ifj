@@ -1123,10 +1123,26 @@ static int CodeMoveSStackItem(SymTableItem_t *returnVariable, SStackItem_t *item
     return return_value;
 }
 
+int SymtableCodeAddTemporaryVariable(SymTable_t *symtable, int tempVariableNumber)
+{
+    char temporaryVariableName[40] = {'\0',};
+    sprintf(temporaryVariableName, "%%temp%d", tempVariableNumber);
+    SymTableItem_t *tempVariable = SymTableFindItem(symtable, temporaryVariableName);
+    if(tempVariable == NULL)
+    {
+        if(SymTableAddVariable(symtable, temporaryVariableName) == NULL)
+            return PARSE_INT_ERR;
+        else if(CodeDeclareVariable(temporaryVariableName) != PARSE_OK)
+            return PARSE_INT_ERR;
+    }
+    return PARSE_OK;
+}
+
 static int Expression(DStr_t **dstr, Token_t *token, DStr_t **nextDstr, Token_t *nextToken, SymTableItem_t *returnVariable)
 {
     int return_value = PARSE_OK;
     SStack_t *stack;
+    int temporaryVariableCount = 0;
     Init_SStack(&stack, SSTACK_DEFAULT_SIZE);
     if(stack == NULL)
         return PARSE_INT_ERR;
@@ -1169,10 +1185,19 @@ static int Expression(DStr_t **dstr, Token_t *token, DStr_t **nextDstr, Token_t 
         }
         else if(precedenceRule == PRE_GT)
         {
-            if((return_value = SStackReduceByRule(stack)) != PARSE_OK)
+            int oldTemporaryVatiableCount = temporaryVariableCount;
+            if((return_value = SStackReduceByRule(stack, &temporaryVariableCount)) != PARSE_OK)
             {
                 Dispose_SStack(&stack);
                 return return_value;
+            }
+
+            if(oldTemporaryVatiableCount != temporaryVariableCount)
+            {
+                if(SymtableCodeAddTemporaryVariable(symtable, temporaryVariableCount) != PARSE_OK)
+                    return PARSE_INT_ERR;
+                SStackItem_t *top_item = Top_SStack(stack);
+                top_item->dataType = SYM_VARIABLE;
             }
             DebugFPrintSStack(output, stack);
         }

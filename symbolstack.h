@@ -72,7 +72,7 @@ SStackItem_t *SStackTopLT(SStack_t *Stack);
 int SStackTopLTIndex(SStack_t *Stack);
 int SStackTopTerminalAddLT(SStack_t *Stack);
 
-int SStackReduceByRule(SStack_t *Stack);
+int SStackReduceByRule(SStack_t *Stack, int *temporaryVariableCount);
 int SStackPushEnd(SStack_t** Stack);
 
 ExpressionPrecedence_t SStackGetExpessionPrecedence(SStack_t *stack, SStackItem_t *stackItem);

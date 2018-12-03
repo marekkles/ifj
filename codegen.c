@@ -118,7 +118,31 @@ int CodeInitialize(void)
     fputs( ""\
     ".IFJcode18\n"\
     "DEFVAR GF@%void\n"\
+    "DEFVAR GF@%operand1\n"\
+    "DEFVAR GF@%operand2\n"\
+    "DEFVAR GF@%operand1type\n"\
+    "DEFVAR GF@%operand2type\n"\
     "JUMP $$main\n"\
+    "LABEL $$operand1ToFloat\n"\
+    "JUMPIFNEQ $$operand1ToFloatReturn GF@%operand1type string@int\n"\
+    "INT2FLOAT GF@%operand1 GF@%operand1\n"\
+    "LABEL $$operand1ToFloatReturn\n"\
+    "TYPE GF@%operand1type GF@%operand1\n"\
+    "RETURN\n"\
+    "LABEL $$operand2ToFloat\n"\
+    "JUMPIFNEQ $$operand2ToFloatReturn GF@%operand2type string@int\n"\
+    "INT2FLOAT GF@%operand2 GF@%operand2\n"\
+    "LABEL $$operand2ToFloatReturn\n"\
+    "TYPE GF@%operand2type GF@%operand2\n"\
+    "RETURN\n"\
+    "LABEL $$operandNumberCompatibility\n"\
+    "JUMPIFNEQ $$compatibilityError GF@%operand1type GF@%operand2type\n"\
+    "JUMPIFEQ $$compatibilityError GF@%operand1type string@bool\n"\
+    "JUMPIFEQ $$compatibilityError GF@%operand1type string@nil\n"\
+    "RETURN\n"\
+    "LABEL $$compatibilityError\n"\
+    "EXIT int@4\n"\
+
     , stdout); 
     const char MainBodyBegin[] = ""\
     "\nLABEL $$main\n"\
@@ -137,6 +161,11 @@ int CodeInitialize(void)
     }
 
     CodeAddBuiltInFunctions();
+
+    instructionList->ifCount = 0;
+    instructionList->whileCount = 0;
+    instructionList->operationCount = 0;
+    instructionList->temporaryCount = 0;
 
     return PARSE_OK;
 }
@@ -338,6 +367,11 @@ int CodeGetUniqueIf()
 {
     instructionList->ifCount++;
     return instructionList->ifCount;
+}
+int CodeGetUniqueOperation()
+{
+    instructionList->operationCount++;
+    return instructionList->operationCount;
 }
 
 int CodeAddWhileStart(int uniqueWhileNumber)

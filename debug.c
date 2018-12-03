@@ -190,10 +190,10 @@ void DebugFPrintSStackItem(FILE *output, SStackItem_t *sstackItem)
 
 void DebugFPrintSStack(FILE *output, SStack_t *sstack)
 {
-    fputs("+--------+\n", output);
-    fputs("| SStack |\n", output);
-    fputs("+--------+\n", output);
-    fputs(" Bottom -> ", output);
+    //fputs("+--------+\n", output);
+    //fputs("| SStack |\n", output);
+    //fputs("+--------+\n", output);
+    fputs(" SStack -> ", output);
     //fputs(" top ->", output);
     for(int i = 0; i <= sstack->top; i++)
     {
