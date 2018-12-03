@@ -48,69 +48,114 @@ static void CodeInstructionListAllocate(CodeInstructionList_t **codeInstructionL
 
 void CodeAddBuiltInFunctions()
 {
-    fputs(""\
-    "\n#Bult-In Function substr\n"
-    "LABEL $substr\n"\
-    "PUSHFRAME\n"\
-    "\n"\
-    "DEFVAR LF@%return\n"\
-    "MOVE LF@%return string@\n"\
-    "DEFVAR LF@%condition\n"\
-    "MOVE LF@%condition nil@nil\n"\
-    "\n"\
-    "DEFVAR LF@s\n"\
-    "MOVE LF@s LF@%1\n"\
-    "DEFVAR LF@i\n"\
-    "MOVE LF@i LF@%2\n"\
-    "DEFVAR LF@n\n"\
-    "MOVE LF@n LF@%3\n"\
-    "\n"\
-    "#Get length of string\n"\
-    "DEFVAR LF@stringLength\n"\
-    "STRLEN LF@stringLength LF@s\n"\
-    "\n"\
-    "DEFVAR LF@lastIndex\n"\
-    "MOVE LF@lastIndex LF@i\n"\
-    "\n"\
-    "ADD LF@lastIndex LF@lastIndex LF@n\n"\
-    "\n"\
-    "#Check if index is in range\n"\
-    "LT LF@%condition LF@i int@0\n"\
-    "JUMPIFEQ $$substrErr  LF@%condition bool@true\n"\
-    "LT LF@%condition LF@i LF@stringLength\n"\
-    "JUMPIFEQ $$substrErr  LF@%condition bool@false\n"\
-    "LT LF@%condition LF@n int@0\n"\
-    "JUMPIFEQ $$substrErr  LF@%condition bool@true\n"\
-    "\n"\
-    "#Main loop\n"\
-    "DEFVAR LF@iterator\n"\
-    "MOVE LF@iterator LF@i\n"\
-    "DEFVAR LF@currentChar\n"\
-    "\n"\
-    "LABEL $$substrLoopStart\n"\
-    "\n"\
-    "#End loop if iterator >= stringLength || iterator >= lastIndex \n"\
-    "LT LF@%condition LF@iterator LF@stringLength\n"\
-    "JUMPIFEQ $$substrReturn LF@%condition bool@false\n"\
-    "LT LF@%condition LF@iterator LF@lastIndex\n"\
-    "JUMPIFEQ $$substrReturn LF@%condition bool@false\n"\
-    "\n"\
-    "#Concatenate with char at index iterator\n"\
-    "GETCHAR LF@currentChar LF@s LF@iterator\n"\
-    "CONCAT LF@%return LF@%return LF@currentChar\n"\
-    "\n"\
-    "#Increment iterator\n"\
-    "ADD LF@iterator LF@iterator int@1\n"\
-    "\n"\
-    "JUMP $$substrLoopStart\n"\
-    "LABEL $$substrReturn\n"\
-    "POPFRAME\n"\
-    "RETURN\n"\
-    "\n"\
-    "LABEL $$substrErr\n"\
-    "MOVE LF@%return nil@nil\n"\
-    "POPFRAME\n"\
-    "RETURN\n", stdout); 
+    const char * substr=""\
+        "\nLABEL $substr\n"\
+        "PUSHFRAME\n"\
+        "DEFVAR LF@%return\n"\
+        "MOVE LF@%return string@\n"\
+        "DEFVAR LF@%condition\n"\
+        "MOVE LF@%condition nil@nil\n"\
+        "DEFVAR LF@%type\n"\
+        "DEFVAR LF@s\n"\
+        "MOVE LF@s LF@%1\n"\
+        "DEFVAR LF@i\n"\
+        "MOVE LF@i LF@%2\n"\
+        "DEFVAR LF@n\n"\
+        "MOVE LF@n LF@%3\n"\
+        "TYPE LF@%type LF@%1\n"\
+        "JUMPIFNEQ $$compatibilityError LF@%type string@string\n"\
+        "TYPE LF@%type LF@%2\n"\
+        "JUMPIFNEQ $$compatibilityError LF@%type string@int\n"\
+        "TYPE LF@%type LF@%3\n"\
+        "JUMPIFNEQ $$compatibilityError LF@%type string@int\n"\
+        "#Get length of string\n"\
+        "DEFVAR LF@stringLength\n"\
+        "STRLEN LF@stringLength LF@s\n"\
+        "DEFVAR LF@lastIndex\n"\
+        "MOVE LF@lastIndex LF@i\n"\
+        "ADD LF@lastIndex LF@lastIndex LF@n\n"\
+        "#Check if index is in range\n"\
+        "LT LF@%condition LF@i int@0\n"\
+        "JUMPIFEQ $$substrErr  LF@%condition bool@true\n"\
+        "LT LF@%condition LF@i LF@stringLength\n"\
+        "JUMPIFEQ $$substrErr  LF@%condition bool@false\n"\
+        "LT LF@%condition LF@n int@0\n"\
+        "JUMPIFEQ $$substrErr  LF@%condition bool@true\n"\
+        "#Main loop\n"\
+        "DEFVAR LF@iterator\n"\
+        "MOVE LF@iterator LF@i\n"\
+        "DEFVAR LF@currentChar\n"\
+        "LABEL $$substrLoopStart\n"\
+        "#End loop if iterator >= stringLength || iterator >= lastIndex \n"\
+        "LT LF@%condition LF@iterator LF@stringLength\n"\
+        "JUMPIFEQ $$substrReturn LF@%condition bool@false\n"\
+        "LT LF@%condition LF@iterator LF@lastIndex\n"\
+        "JUMPIFEQ $$substrReturn LF@%condition bool@false\n"\
+        "#Concatenate with char at index iterator\n"\
+        "GETCHAR LF@currentChar LF@s LF@iterator\n"\
+        "CONCAT LF@%return LF@%return LF@currentChar\n"\
+        "#Increment iterator\n"\
+        "ADD LF@iterator LF@iterator int@1\n"\
+        "JUMP $$substrLoopStart\n"\
+        "LABEL $$substrReturn\n"\
+        "POPFRAME\n"\
+        "RETURN\n"\
+        "LABEL $$substrErr\n"\
+        "MOVE LF@%return nil@nil\n"\
+        "POPFRAME\n"\
+        "RETURN\n";
+    const char * ord = ""\
+        "\nLABEL $ord\n"\
+        "PUSHFRAME\n"\
+        "DEFVAR LF@%return\n"\
+        "MOVE LF@%return nil@nil\n"\
+        "DEFVAR LF@%type\n"\
+        "DEFVAR LF@%condition\n"\
+        "TYPE LF@%type LF@%1\n"\
+        "JUMPIFNEQ $$compatibilityError LF@%type string@string\n"\
+        "TYPE LF@%type LF@%2\n"\
+        "JUMPIFNEQ $$compatibilityError LF@%type string@int\n"\
+        "DEFVAR LF@slen\n"\
+        "STRLEN LF@slen LF@%1\n"\
+        "LT LF@%condition LF@%2 LF@slen\n"\
+        "JUMPIFEQ $$ordReturn LF@%condition bool@false\n"\
+        "GT LF@%condition LF@%2 int@-1\n"\
+        "JUMPIFEQ $$ordReturn LF@%condition bool@false\n"\
+        "STRI2INT LF@%return LF@%1 LF@%2\n"\
+        "LABEL $$ordReturn\n"\
+        "POPFRAME\n"\
+        "RETURN\n";
+    const char * chr = ""\
+        "\nLABEL $chr\n"\
+        "PUSHFRAME\n"\
+        "DEFVAR LF@%return\n"\
+        "DEFVAR LF@%type\n"\
+        "MOVE LF@%return nil@nil\n"\
+        "DEFVAR LF@%condition\n"\
+        "TYPE LF@%type LF@%1\n"\
+        "JUMPIFNEQ $$compatibilityError LF@%type string@int\n"\
+        "GT LF@%condition LF@%1 int@-1\n"\
+        "JUMPIFEQ $$stringError LF@%condition bool@false\n"\
+        "LT LF@%condition LF@%1 int@256\n"\
+        "JUMPIFEQ $$stringError LF@%condition bool@false\n"\
+        "INT2CHAR LF@%return LF@%1\n"\
+        "POPFRAME\n"\
+        "RETURN\n";
+    const char * length = ""\
+        "\nLABEL $length\n"\
+        "PUSHFRAME\n"\
+        "DEFVAR LF@%return\n"\
+        "DEFVAR LF@%type\n"\
+        "MOVE LF@%return nil@nil\n"\
+        "TYPE LF@%type LF@%1\n"\
+        "JUMPIFNEQ $$compatibilityError LF@%type string@string\n"\
+        "STRLEN LF@%return LF@%1\n"\
+        "POPFRAME\n"\
+        "RETURN\n";
+    fputs(length, stdout);
+    fputs(ord, stdout);
+    fputs(chr, stdout);
+    fputs(substr, stdout);
 }
 
 int CodeInitialize(void)
@@ -155,6 +200,8 @@ int CodeInitialize(void)
     "JUMPIFEQ $$compatibilityError GF@%operand1type string@nil\n"\
     "RETURN\n"\
     "LABEL $$compatibilityError\n"\
+    "EXIT int@4\n"\
+    "LABEL $$stringError\n"\
     "EXIT int@4\n"\
 
     , stdout); 

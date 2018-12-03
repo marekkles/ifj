@@ -12,8 +12,7 @@ enum {
     FUN_INPUTS,
     FUN_INPUTI,
     FUN_INPUTF,
-    FUN_PRINT,
-    FUN_LENGTH
+    FUN_PRINT
 };
 
 SymTable_t *symtable;
@@ -38,7 +37,17 @@ static int Expression(DStr_t **dstr, Token_t *token, DStr_t **nextDstr,Token_t *
 
 static int SymTableAddInternalFunctions(SymTable_t *symtable)
 {
-    SymTableItem_t *function = SymTableAddFunction(symtable, "substr", 3, true);
+    SymTableItem_t *function;
+    function = SymTableAddFunction(symtable, "substr", 3, true);
+    if(function == NULL)
+        return PARSE_INT_ERR;
+    function = SymTableAddFunction(symtable, "ord", 2, true);
+    if(function == NULL)
+        return PARSE_INT_ERR;
+    function = SymTableAddFunction(symtable, "chr", 1, true);
+    if(function == NULL)
+        return PARSE_INT_ERR;
+    function = SymTableAddFunction(symtable, "length", 1, true);
     if(function == NULL)
         return PARSE_INT_ERR;
 }
@@ -74,8 +83,6 @@ static int IsInternalInlineFunction(DStr_t **dstr, Token_t *token)
         return FUN_INPUTF;
     else if (strcmp("print", DStrStr(*dstr)) == 0)
         return FUN_PRINT;
-    else if (strcmp("length", DStrStr(*dstr)) == 0)
-        return FUN_LENGTH;
     else
         return -1;
 }
@@ -260,51 +267,6 @@ static int ParseInternalInlineFunction(int iternalInlineFunctionNumber, SymTable
                 if((return_value = CodeMoveNil(returnVariable->key)) != PARSE_OK)
                     return return_value;
             
-            break;
-        }
-        case FUN_LENGTH:
-        {
-            if((return_value = ExpectTerm(dstr, token)) != PARSE_OK)
-                return return_value;
-            if(token->type == T_IDENTIFIER)
-            {
-                SymTableItem_t *foundVariable = SymTableFindItem(symtable, DStrStr(*dstr));
-                if(foundVariable == NULL)
-                    return PARSE_UNDEF_VAR;
-                if(foundVariable->type != SYM_VARIABLE)
-                    return PARSE_UNDEF_VAR;
-                    
-                if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
-                    return return_value;
-            }
-            if((return_value = CodeAddInstruction(STRLEN)) != PARSE_OK)
-                return return_value;
-            if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
-                    return return_value;
-            if(returnVariable == NULL)
-            {
-                if((return_value = CodeAddTextToBody("GF@%void")) != PARSE_OK)
-                    return return_value;
-            }
-            else
-            {
-                if((return_value = CodeAddVariable(returnVariable->key)) != PARSE_OK)
-                    return return_value;
-            }
-            if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
-                return return_value;
-
-            if(token->type == T_IDENTIFIER)
-                if((return_value = CodeAddVariable(DStrStr(*dstr))) != PARSE_OK)
-                    return return_value;
-            if(token->type == T_STRING)
-                if((return_value = CodeAddString(DStrStr(*dstr))) != PARSE_OK)
-                    return return_value;
-            if(token->type != T_STRING && token->type != T_IDENTIFIER)
-                return PARSE_TYPE_COMP;
-
-            if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
-                return return_value;
             break;
         }
     }

@@ -1,30 +1,85 @@
 .IFJcode18
 JUMP $$main
 
+LABEL $$compatibilityError
+EXIT int@4
+LABEL $$stringError
+EXIT int@4
+
+LABEL $length
+PUSHFRAME
+DEFVAR LF@%return
+DEFVAR LF@%type
+MOVE LF@%return nil@nil
+TYPE LF@%type LF@%1
+JUMPIFNEQ $$compatibilityError LF@%type string@string
+STRLEN LF@%return LF@%1
+POPFRAME
+RETURN
+
+LABEL $chr
+PUSHFRAME
+DEFVAR LF@%return
+DEFVAR LF@%type
+MOVE LF@%return nil@nil
+DEFVAR LF@%condition
+TYPE LF@%type LF@%1
+JUMPIFNEQ $$compatibilityError LF@%type string@int
+GT LF@%condition LF@%1 int@-1
+JUMPIFEQ $$stringError LF@%condition bool@false
+LT LF@%condition LF@%1 int@256
+JUMPIFEQ $$stringError LF@%condition bool@false
+INT2CHAR LF@%return LF@%1
+POPFRAME
+RETURN
+
+
+LABEL $ord
+PUSHFRAME
+DEFVAR LF@%return
+MOVE LF@%return nil@nil
+DEFVAR LF@%type
+DEFVAR LF@%condition
+TYPE LF@%type LF@%1
+JUMPIFNEQ $$compatibilityError LF@%type string@string
+TYPE LF@%type LF@%2
+JUMPIFNEQ $$compatibilityError LF@%type string@int
+DEFVAR LF@slen
+STRLEN LF@slen LF@%1
+LT LF@%condition LF@%2 LF@slen
+JUMPIFEQ $$ordReturn LF@%condition bool@false
+GT LF@%condition LF@%2 int@-1
+JUMPIFEQ $$ordReturn LF@%condition bool@false
+STRI2INT LF@%return LF@%1 LF@%2
+LABEL $$ordReturn
+POPFRAME
+RETURN
+
 LABEL $substr
 PUSHFRAME
-
 DEFVAR LF@%return
 MOVE LF@%return string@
 DEFVAR LF@%condition
 MOVE LF@%condition nil@nil
-
+DEFVAR LF@%type
 DEFVAR LF@s
 MOVE LF@s LF@%1
 DEFVAR LF@i
 MOVE LF@i LF@%2
 DEFVAR LF@n
 MOVE LF@n LF@%3
-
+TYPE LF@%type LF@%1
+JUMPIFNEQ $$compatibilityError LF@%type string@string
+TYPE LF@%type LF@%2
+JUMPIFNEQ $$compatibilityError LF@%type string@int
+TYPE LF@%type LF@%3
+JUMPIFNEQ $$compatibilityError LF@%type string@int
 #Get length of string
 DEFVAR LF@stringLength
 STRLEN LF@stringLength LF@s
-
 DEFVAR LF@lastIndex
 MOVE LF@lastIndex LF@i
-
 ADD LF@lastIndex LF@lastIndex LF@n
-
 #Check if index is in range
 LT LF@%condition LF@i int@0
 JUMPIFEQ $$substrErr  LF@%condition bool@true
@@ -32,32 +87,25 @@ LT LF@%condition LF@i LF@stringLength
 JUMPIFEQ $$substrErr  LF@%condition bool@false
 LT LF@%condition LF@n int@0
 JUMPIFEQ $$substrErr  LF@%condition bool@true
-
 #Main loop
 DEFVAR LF@iterator
 MOVE LF@iterator LF@i
 DEFVAR LF@currentChar
-
 LABEL $$substrLoopStart
-
 #End loop if iterator >= stringLength || iterator >= lastIndex 
 LT LF@%condition LF@iterator LF@stringLength
 JUMPIFEQ $$substrReturn LF@%condition bool@false
 LT LF@%condition LF@iterator LF@lastIndex
 JUMPIFEQ $$substrReturn LF@%condition bool@false
-
 #Concatenate with char at index iterator
 GETCHAR LF@currentChar LF@s LF@iterator
 CONCAT LF@%return LF@%return LF@currentChar
-
 #Increment iterator
 ADD LF@iterator LF@iterator int@1
-
 JUMP $$substrLoopStart
 LABEL $$substrReturn
 POPFRAME
 RETURN
-
 LABEL $$substrErr
 MOVE LF@%return nil@nil
 POPFRAME
@@ -72,7 +120,7 @@ DEFVAR LF@str
 DEFVAR LF@index
 DEFVAR LF@number
 
-MOVE LF@str string@Macka\020Mnau
+MOVE LF@str string@\010acka\020Mnau
 MOVE LF@index int@0
 MOVE LF@number int@4
 
@@ -86,3 +134,37 @@ MOVE TF@%3 LF@number
 CALL $substr
 
 WRITE TF@%return
+WRITE string@\010
+
+CREATEFRAME 
+DEFVAR TF@%1
+MOVE TF@%1 LF@str
+DEFVAR TF@%2
+MOVE TF@%2 int@0
+CALL $ord
+
+#TYPE TF@%return TF@%return
+
+WRITE TF@%return
+WRITE string@\010
+
+CREATEFRAME 
+DEFVAR TF@%1
+MOVE TF@%1 int@69
+CALL $chr
+
+#TYPE TF@%return TF@%return
+
+WRITE TF@%return
+WRITE string@\010
+
+
+CREATEFRAME 
+DEFVAR TF@%1
+MOVE TF@%1 int@22
+CALL $length
+
+#TYPE TF@%return TF@%return
+
+WRITE TF@%return
+WRITE string@\010
