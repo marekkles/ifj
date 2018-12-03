@@ -82,3 +82,5 @@ if.src
 test.src
 testfile1.src
 testparse.src
+conversion.src
+testprecedence.src
