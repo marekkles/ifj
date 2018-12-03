@@ -36,19 +36,16 @@
 <CommandEnd> -> EOL <Command>
 <CommandEnd> -> EOF
 
-<Command> -> if <Expression> then EOL <Command> end <CommandEnd>
+<Command> -> if <Expression> then EOL <Command> else <Command> end <CommandEnd>
 <Command> -> while <Expression> do EOL <Command> end <CommandEnd>
 <Command> -> EOL <Command>
 <Command> -> EOF
-<Command> -> nil <CommandEnd>
 <Command> -> print <PrintTermList> <CommandEnd>
 <Command> -> print (<PrintTermList>) <CommandEnd>
 <Command> -> id ( <TermList> ) <CommandEnd>
 <Command> -> id <TermList> <CommandEnd>
 <Command> -> id = id (<TermList>) <CommandEnd>
 <Command> -> id = id <TermList> <CommandEnd>
-<Command> -> id = string <CommandEnd>
 <Command> -> id = <Expression> <CommandEnd>
 <Command> -> <Expression> <CommandEnd>
-<Command> -> string <CommandEnd>
 <Command> -> ε
