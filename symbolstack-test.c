@@ -25,7 +25,7 @@ int main(int argc, char const *argv[])
     DStrCat(&dstr, "");
     SStackProcessTokenToItem(dstr, &token, &sstackItem);
     Push_SStack(&sstack, &sstackItem);
-
+    /*
     DebugFPrintSStack(stdout, sstack);
 
     token.type = T_DOUBLE;
@@ -170,7 +170,7 @@ int main(int argc, char const *argv[])
     topTerminal = SStackTopTerminal(sstack);
     DebugFPrintf(stdout, "\nTop terminal index = [%d]\n\nTop terminal:\n", topTerminal);
     DebugFPrintSStackItem(stdout, &(sstack->stack[topTerminal]));
-
+*/
     DStrFree(&dstr);
     SymTableDispose(&symtable);
     Dispose_SStack(&sstack);
