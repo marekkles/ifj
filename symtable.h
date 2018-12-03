@@ -52,6 +52,7 @@ SymTableItem_t *SymTableFindItem(SymTable_t *SymTable, char *key);
 SymTableItem_t *SymTableAddItem(SymTable_t *SymTable, SymTableItem_t *Item);
 SymTableItem_t *SymTableAddFunction(SymTable_t *SymTable, char *str, int parameterCount, bool defined);
 SymTableItem_t *SymTableAddVariable(SymTable_t *SymTable, char *str);
+bool SymTableAreUndefinedFunctions(SymTable_t *SymTable);
 void SymTableRemoveItem(SymTable_t *SymTable, char *key);
 void SymTableDispose(SymTable_t **SymTable);
 

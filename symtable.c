@@ -130,6 +130,20 @@ SymTableItem_t *SymTableAddVariable(SymTable_t *SymTable, char *str)
     newItem->variableType = VAR_UNDEFINED;
     return SymTableAddItem(SymTable, newItem);
 }
+bool SymTableAreUndefinedFunctions(SymTable_t *SymTable)
+{
+    for(int i = 0; i < SymTable->size; i++)
+    {
+        SymTableItem_t *currentItem = SymTable->table[i];
+        while(currentItem != NULL)
+        {
+            if(currentItem->type == SYM_FUNCTION && currentItem->def == 0)
+                return true;
+            currentItem = currentItem->NextPtr;
+        }
+    }
+    return false;
+}
 
 void SymTableRemoveItem(SymTable_t *SymTable, char *key)
 {

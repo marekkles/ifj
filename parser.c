@@ -1243,7 +1243,8 @@ int Parse(void)
         if(return_value != PARSE_OK)
             DebugFPrintToken(stderr, &token, dstr);
     }
-    
+    if(SymTableAreUndefinedFunctions(symtable))
+        return_value = PARSE_UNDEF_VAR;
     DStrFree(&dstr);
     SymTableDispose(&symtable);
     CodeFinalize();
