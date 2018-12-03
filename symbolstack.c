@@ -175,13 +175,6 @@ int SStackTopTerminalAddLT(SStack_t *Stack)
 	return PARSE_OK;
 }
 
-enum {ITEMS_ARE_INT, ITEMS_ARE_DOUBLE, ITEMS_ARE_DOUBLE_INT, //Integer double combinations
-      ITEMS_ARE_STRING, //String (integer, double) combinations
-	  ITEMS_ARE_SYMBOL_INT, ITEMS_ARE_SYMBOL_DOUBLE, //Symbols integer double combinations
-	  ITEMS_ARE_SYMBOL_STRING, //Symbols string (integer. double) combinations
-	  ITEMS_ARE_SYMBOL_UNDEFINED, ITEMS_ARE_OTHER //Other combinations of symbols
-	 };
-
 
 typedef enum {
 	C_NIL_NIL, C_INT_INT, C_DOUBLE_DOUBLE, C_STRING_STRING, C_VAR_VAR,
@@ -203,7 +196,7 @@ static int SStackWhatAreItems(SStackItem_t *item1, SStackItem_t *item2)
 		return_value = C_DOUBLE_DOUBLE;
 	else if(item1->dataType == STACK_STRING && item2->dataType == STACK_STRING)
 		return_value = C_STRING_STRING;
-	else if(item1->dataType == STACK_STRING && item2->dataType == STACK_STRING)
+	else if(item1->dataType == STACK_SYMBOL && item2->dataType == STACK_SYMBOL)
 		return_value = C_VAR_VAR;
 	else if((item1->dataType == STACK_INT || item1->dataType == STACK_NIL) &&
 	        (item2->dataType == STACK_INT || item2->dataType == STACK_NIL))
@@ -244,12 +237,32 @@ static double SStackGetItemDoubleValue(SStackItem_t *item)
 	return item->data.doubleValue;
 }
 
+static int CodeAddSStackItem(SStackItem_t *item)
+{
+	int return_value = PARSE_OK;
+    if(item->dataType == STACK_DOUBLE)
+        return_value = CodeAddDouble(item->data.doubleValue);
+    else if(item->dataType == STACK_INT)
+        return_value = CodeAddInt(item->data.intValue);
+    else if(item->dataType == STACK_NIL)
+        return_value = CodeAddNil();
+    else if(item->dataType == STACK_BOOL)
+        return_value = CodeAddBool(item->data.boolValue);
+    else if(item->dataType == STACK_STRING)
+        return_value = CodeAddString(item->data.string);
+    else if(item->dataType == STACK_SYMBOL)
+        return_value = CodeAddVariable(item->data.symbol->key);
+    else
+        return PARSE_INT_ERR;
+    return return_value;
+} 
 
 static int SStackRuleAddition(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
 	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
 	int itemsType = SStackWhatAreItems(item1, item2);
+	int return_value = PARSE_OK;
 	switch(itemsType)
 	{
 		case C_INT_INT:
@@ -282,54 +295,66 @@ static int SStackRuleAddition(SStack_t *Stack, int startingIndex, int *temporary
 			SStackFreeString(item2->data.string);
 			break;
 		}
-		case C_STRING_VAR:
+		case C_STRING_VAR: case C_DOUBLE_VAR: case C_INT_VAR: case C_VAR_VAR:
 		{
+			(*temporaryVariableCount)++;
+			int uniqueOperationId = CodeGetUniqueOperation();
+
+			return_value |= CodeAddTextToBody("\nMOVE GF@%operand1 ");
+			return_value |= CodeAddSStackItem(item1);
+			return_value |= CodeAddTextToBody("\nMOVE GF@%operand2 ");
+			return_value |= CodeAddSStackItem(item2);
+			return_value |= CodeAddTextToBody("\nTYPE GF@%operand1type GF@%operand1");
+			return_value |= CodeAddTextToBody("\nTYPE GF@%operand2type GF@%operand2");
+			return_value |= CodeAddTextToBody("\nJUMPIFNEQ ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "conversion");
+			return_value |= CodeAddTextToBody(" GF@%operand1type string@string");
+			return_value |= CodeAddTextToBody("\nJUMPIFNEQ ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "conversion");
+			return_value |= CodeAddTextToBody(" GF@%operand2type string@string");
+			return_value |= CodeAddTextToBody("\nCONCAT ");
+			return_value |= CodeAddTempVariable(*temporaryVariableCount);
+			return_value |= CodeAddTextToBody(" GF@%operand1 GF@%operand2");
+			return_value |= CodeAddTextToBody("\nJUMP ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "end");
+			//LABEL $$operation[uniqueOperationId]conversion
+			return_value |= CodeAddTextToBody("\nLABEL ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "conversion");
+			return_value |= CodeAddTextToBody("\nJUMPIFEQ ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
+			return_value |= CodeAddTextToBody(" GF@%operand1type GF@%operand2type");
+			return_value |= CodeAddTextToBody("\nCALL $$operand1ToFloat");
+			return_value |= CodeAddTextToBody("\nCALL $$operand2ToFloat");
+			//LABEL $$operation[uniqueOperationId]compatibility
+			return_value |= CodeAddTextToBody("\nLABEL ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
+			return_value |= CodeAddTextToBody("\nCALL $$operandNumberCompatibility");
+			return_value |= CodeAddTextToBody("\nADD ");
+			return_value |= CodeAddTempVariable(*temporaryVariableCount);
+			return_value |= CodeAddTextToBody(" GF@%operand1 GF@%operand2");
+			//LABEL $$operation[uniqueOperationId]end
+			return_value |= CodeAddTextToBody("\nLABEL ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "end");
+			if(return_value != PARSE_OK)
+				return PARSE_INT_ERR;
+			if(item2->dataType == STACK_STRING)
+				SStackFreeString(item2->data.string);
 			if(item1->dataType == STACK_STRING)
-			{
-				//Test compatibility op 2, concatenate
-			}
-			else
-			{
-				//Test compatibility op 1, concatenate
-			}
-			break;
-		}
-		case C_DOUBLE_VAR:
-		{
-			if(item1->dataType == STACK_DOUBLE)
-			{
-				//Try convert op 2, test compatibility, add
-			}
-			else
-			{
-				//Try convert op 1, test compatibility, add
-			}
-			break;
-		}
-		case C_INT_VAR:
-		{
-			//Types not equal, Try convert op 1, Try convert op 2, test compatibility, add
-			//Else Test compatibility, add
-			break;
-		}
-		case C_VAR_VAR:
-		{
+				SStackFreeString(item1->data.string);
 			break;
 		}
 		default:
-		{
 			return PARSE_TYPE_COMP;
-		}
 	}
-
 	Stack->top = Stack->top - 2;
-	return PARSE_OK;
+	return return_value;
 }
 static int SStackRuleSubtraction(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
 	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
 	int itemsType = SStackWhatAreItems(item1, item2);
+	int return_value = PARSE_OK;
 	switch(itemsType)
 	{
 		case C_INT_INT:
@@ -350,16 +375,34 @@ static int SStackRuleSubtraction(SStack_t *Stack, int startingIndex, int *tempor
 			item1->data.doubleValue = doubleValue1 - doubleValue2;
 			break;
 		}
-		case C_DOUBLE_VAR:
+		case C_DOUBLE_VAR: case C_INT_VAR: case C_VAR_VAR:
 		{
-			break;
-		}
-		case C_INT_VAR:
-		{
-			break;
-		}
-		case C_VAR_VAR:
-		{
+			(*temporaryVariableCount)++;
+			int uniqueOperationId = CodeGetUniqueOperation();
+
+			CodeAddTextToBody("\nMOVE GF@%operand1 ");
+			CodeAddSStackItem(item1);
+			CodeAddTextToBody("\nMOVE GF@%operand2 ");
+			CodeAddSStackItem(item2);
+			CodeAddTextToBody("\nTYPE GF@%operand1type GF@%operand1");
+			CodeAddTextToBody("\nTYPE GF@%operand2type GF@%operand2");
+			CodeAddTextToBody("\nJUMPIFEQ ");
+			CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
+			CodeAddTextToBody(" GF@%operand1type GF@%operand2type");
+
+			CodeAddTextToBody("\nCALL $$operand1ToFloat");
+			CodeAddTextToBody("\nCALL $$operand2ToFloat");
+
+			CodeAddTextToBody("\nLABEL ");
+			CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
+			CodeAddTextToBody("\nCALL $$operandNumberCompatibility");
+			CodeAddTextToBody("\nSUB ");
+			CodeAddTempVariable(*temporaryVariableCount);
+			CodeAddTextToBody(" GF@%operand1 GF@%operand2");
+
+			if(item1->dataType == STACK_STRING)
+				SStackFreeString(item1->data.string);
+			item1->dataType = STACK_SYMBOL;
 			break;
 		}
 		default:
@@ -373,6 +416,7 @@ static int SStackRuleMultiplication(SStack_t *Stack, int startingIndex, int *tem
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
 	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
 	int itemsType = SStackWhatAreItems(item1, item2);
+	int return_value = PARSE_OK;
 	switch(itemsType)
 	{
 		case C_INT_INT:
@@ -393,16 +437,34 @@ static int SStackRuleMultiplication(SStack_t *Stack, int startingIndex, int *tem
 			item1->data.doubleValue = doubleValue1 * doubleValue2;
 			break;
 		}
-		case C_DOUBLE_VAR:
+		case C_DOUBLE_VAR: case C_INT_VAR: case C_VAR_VAR:
 		{
-			break;
-		}
-		case C_INT_VAR:
-		{
-			break;
-		}
-		case C_VAR_VAR:
-		{
+			(*temporaryVariableCount)++;
+			int uniqueOperationId = CodeGetUniqueOperation();
+
+			CodeAddTextToBody("\nMOVE GF@%operand1 ");
+			CodeAddSStackItem(item1);
+			CodeAddTextToBody("\nMOVE GF@%operand2 ");
+			CodeAddSStackItem(item2);
+			CodeAddTextToBody("\nTYPE GF@%operand1type GF@%operand1");
+			CodeAddTextToBody("\nTYPE GF@%operand2type GF@%operand2");
+			CodeAddTextToBody("\nJUMPIFEQ ");
+			CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
+			CodeAddTextToBody(" GF@%operand1type GF@%operand2type");
+
+			CodeAddTextToBody("\nCALL $$operand1ToFloat");
+			CodeAddTextToBody("\nCALL $$operand2ToFloat");
+
+			CodeAddTextToBody("\nLABEL ");
+			CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
+			CodeAddTextToBody("\nCALL $$operandNumberCompatibility");
+			CodeAddTextToBody("\nMUL ");
+			CodeAddTempVariable(*temporaryVariableCount);
+			CodeAddTextToBody(" GF@%operand1 GF@%operand2");
+
+			if(item1->dataType == STACK_STRING)
+				SStackFreeString(item1->data.string);
+			item1->dataType = STACK_SYMBOL;
 			break;
 		}
 		default:
@@ -416,6 +478,7 @@ static int SStackRuleDivision(SStack_t *Stack, int startingIndex, int *temporary
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
 	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
 	int itemsType = SStackWhatAreItems(item1, item2);
+	int return_value = PARSE_OK;
 
 	if((item2->dataType == STACK_DOUBLE && item2->data.doubleValue == 0) || 
 	   (item2->dataType == STACK_INT && item2->data.intValue == 0))
@@ -441,16 +504,40 @@ static int SStackRuleDivision(SStack_t *Stack, int startingIndex, int *temporary
 			item1->data.doubleValue = doubleValue1 / doubleValue2;
 			break;
 		}
-		case C_DOUBLE_VAR:
+		case C_DOUBLE_VAR: case C_INT_VAR: case C_VAR_VAR:
 		{
-			break;
-		}
-		case C_INT_VAR:
-		{
-			break;
-		}
-		case C_VAR_VAR:
-		{
+			(*temporaryVariableCount)++;
+			int uniqueOperationId = CodeGetUniqueOperation();
+			CodeAddTextToBody("\nMOVE GF@%operand1 ");
+			CodeAddSStackItem(item1);
+			CodeAddTextToBody("\nMOVE GF@%operand2 ");
+			CodeAddSStackItem(item2);
+			CodeAddTextToBody("\nTYPE GF@%operand1type GF@%operand1");
+			CodeAddTextToBody("\nTYPE GF@%operand2type GF@%operand2");
+			CodeAddTextToBody("\nJUMPIFNEQ ");
+			CodeAddLabelName("$$operation", uniqueOperationId, "conevert");
+			CodeAddTextToBody(" GF@%operand1type string@int");
+			CodeAddTextToBody("\nJUMPIFNEQ ");
+			CodeAddLabelName("$$operation", uniqueOperationId, "conevert");
+			CodeAddTextToBody(" GF@%operand2type string@int");
+			CodeAddTextToBody("\nIDIV ");
+			CodeAddTempVariable(*temporaryVariableCount);
+			CodeAddTextToBody(" GF@%operand1 GF@%operand2");
+			CodeAddTextToBody("\nJUMP ");
+			CodeAddLabelName("$$operation", uniqueOperationId, "end");
+			CodeAddTextToBody("\nLABEL ");
+			CodeAddLabelName("$$operation", uniqueOperationId, "conevert");
+			CodeAddTextToBody("\nCALL $$operand1ToFloat");
+			CodeAddTextToBody("\nCALL $$operand2ToFloat");
+			CodeAddTextToBody("\nCALL $$operandNumberCompatibility");
+			CodeAddTextToBody("\nDIV ");
+			CodeAddTempVariable(*temporaryVariableCount);
+			CodeAddTextToBody(" GF@%operand1 GF@%operand2");
+			CodeAddTextToBody("\nLABEL ");
+			CodeAddLabelName("$$operation", uniqueOperationId, "end");
+			if(item1->dataType == STACK_STRING)
+				SStackFreeString(item1->data.string);
+			item1->dataType = STACK_SYMBOL;
 			break;
 		}
 		default:
@@ -464,6 +551,7 @@ static int SStackRuleIsLesserThan(SStack_t *Stack, int startingIndex, int *tempo
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
 	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
 	int itemsType = SStackWhatAreItems(item1, item2);
+	int return_value = PARSE_OK;
 	switch(itemsType)
 	{
 		case C_INT_INT:
@@ -486,16 +574,28 @@ static int SStackRuleIsLesserThan(SStack_t *Stack, int startingIndex, int *tempo
 			item1->data.boolValue = (doubleValue1 < doubleValue1);
 			break;
 		}
-		case C_DOUBLE_VAR:
+		case C_DOUBLE_VAR: case C_INT_VAR: case C_VAR_VAR:
 		{
-			break;
-		}
-		case C_INT_VAR:
-		{
-			break;
-		}
-		case C_VAR_VAR:
-		{
+			(*temporaryVariableCount)++;
+			int uniqueOperationId = CodeGetUniqueOperation();
+			return_value |= CodeAddTextToBody("\nMOVE GF@%operand1 ");
+			return_value |= CodeAddSStackItem(item1);
+			return_value |= CodeAddTextToBody("\nMOVE GF@%operand2 ");
+			return_value |= CodeAddSStackItem(item2);
+			return_value |= CodeAddTextToBody("\nTYPE GF@%operand1type GF@%operand1");
+			return_value |= CodeAddTextToBody("\nTYPE GF@%operand2type GF@%operand2");
+			return_value |= CodeAddTextToBody("\nJUMPIFEQ ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
+			return_value |= CodeAddTextToBody(" GF@%operand1type GF@%operand2type");
+			return_value |= CodeAddTextToBody("\nCALL $$operand1ToFloat");
+			return_value |= CodeAddTextToBody("\nCALL $$operand2ToFloat");
+			//LABEL $$operation[uniqueOperationId]compatibility
+			return_value |= CodeAddTextToBody("\nLABEL ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
+			return_value |= CodeAddTextToBody("\nCALL $$operandNumberCompatibility");
+			return_value |= CodeAddTextToBody("\nLT ");
+			return_value |= CodeAddTempVariable(*temporaryVariableCount);
+			return_value |= CodeAddTextToBody(" GF@%operand1 GF@%operand2");
 			break;
 		}
 		default:
@@ -509,6 +609,7 @@ static int SStackRuleIsLesserEqual(SStack_t *Stack, int startingIndex, int *temp
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
 	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
 	int itemsType = SStackWhatAreItems(item1, item2);
+	int return_value = PARSE_OK;
 	switch(itemsType)
 	{
 		case C_INT_INT:
@@ -531,16 +632,32 @@ static int SStackRuleIsLesserEqual(SStack_t *Stack, int startingIndex, int *temp
 			item1->data.boolValue = (doubleValue1 <= doubleValue1);
 			break;
 		}
-		case C_DOUBLE_VAR:
+		case C_DOUBLE_VAR: case C_INT_VAR: case C_VAR_VAR:
 		{
-			break;
-		}
-		case C_INT_VAR:
-		{
-			break;
-		}
-		case C_VAR_VAR:
-		{
+			(*temporaryVariableCount)++;
+			int uniqueOperationId = CodeGetUniqueOperation();
+			return_value |= CodeAddTextToBody("\nMOVE GF@%operand1 ");
+			return_value |= CodeAddSStackItem(item1);
+			return_value |= CodeAddTextToBody("\nMOVE GF@%operand2 ");
+			return_value |= CodeAddSStackItem(item2);
+			return_value |= CodeAddTextToBody("\nTYPE GF@%operand1type GF@%operand1");
+			return_value |= CodeAddTextToBody("\nTYPE GF@%operand2type GF@%operand2");
+			return_value |= CodeAddTextToBody("\nJUMPIFEQ ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
+			return_value |= CodeAddTextToBody(" GF@%operand1type GF@%operand2type");
+			return_value |= CodeAddTextToBody("\nCALL $$operand1ToFloat");
+			return_value |= CodeAddTextToBody("\nCALL $$operand2ToFloat");
+			//LABEL $$operation[uniqueOperationId]compatibility
+			return_value |= CodeAddTextToBody("\nLABEL ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
+			return_value |= CodeAddTextToBody("\nCALL $$operandNumberCompatibility");
+			return_value |= CodeAddTextToBody("\nGT ");
+			return_value |= CodeAddTempVariable(*temporaryVariableCount);
+			return_value |= CodeAddTextToBody(" GF@%operand1 GF@%operand2");
+			return_value |= CodeAddTextToBody("\nNOT ");
+			return_value |= CodeAddTempVariable(*temporaryVariableCount);
+			return_value |= CodeAddTextToBody(" ");
+			return_value |= CodeAddTempVariable(*temporaryVariableCount);
 			break;
 		}
 		default:
@@ -554,6 +671,7 @@ static int SStackRuleIsGreaterThan(SStack_t *Stack, int startingIndex, int *temp
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
 	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
 	int itemsType = SStackWhatAreItems(item1, item2);
+	int return_value = PARSE_OK;
 	switch(itemsType)
 	{
 		case C_INT_INT:
@@ -576,16 +694,28 @@ static int SStackRuleIsGreaterThan(SStack_t *Stack, int startingIndex, int *temp
 			item1->data.boolValue = (doubleValue1 > doubleValue1);
 			break;
 		}
-		case C_DOUBLE_VAR:
+		case C_DOUBLE_VAR: case C_INT_VAR: case C_VAR_VAR:
 		{
-			break;
-		}
-		case C_INT_VAR:
-		{
-			break;
-		}
-		case C_VAR_VAR:
-		{
+			(*temporaryVariableCount)++;
+			int uniqueOperationId = CodeGetUniqueOperation();
+			return_value |= CodeAddTextToBody("\nMOVE GF@%operand1 ");
+			return_value |= CodeAddSStackItem(item1);
+			return_value |= CodeAddTextToBody("\nMOVE GF@%operand2 ");
+			return_value |= CodeAddSStackItem(item2);
+			return_value |= CodeAddTextToBody("\nTYPE GF@%operand1type GF@%operand1");
+			return_value |= CodeAddTextToBody("\nTYPE GF@%operand2type GF@%operand2");
+			return_value |= CodeAddTextToBody("\nJUMPIFEQ ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
+			return_value |= CodeAddTextToBody(" GF@%operand1type GF@%operand2type");
+			return_value |= CodeAddTextToBody("\nCALL $$operand1ToFloat");
+			return_value |= CodeAddTextToBody("\nCALL $$operand2ToFloat");
+			//LABEL $$operation[uniqueOperationId]compatibility
+			return_value |= CodeAddTextToBody("\nLABEL ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
+			return_value |= CodeAddTextToBody("\nCALL $$operandNumberCompatibility");
+			return_value |= CodeAddTextToBody("\nGT ");
+			return_value |= CodeAddTempVariable(*temporaryVariableCount);
+			return_value |= CodeAddTextToBody(" GF@%operand1 GF@%operand2");
 			break;
 		}
 		default:
@@ -599,6 +729,7 @@ static int SStackRuleIsGreaterEqual(SStack_t *Stack, int startingIndex, int *tem
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
 	SStackItem_t *item2 = &(Stack->stack[startingIndex+2]);
 	int itemsType = SStackWhatAreItems(item1, item2);
+	int return_value = PARSE_OK;
 	switch(itemsType)
 	{
 		case C_INT_INT:
@@ -621,16 +752,32 @@ static int SStackRuleIsGreaterEqual(SStack_t *Stack, int startingIndex, int *tem
 			item1->data.boolValue = (doubleValue1 >= doubleValue1);
 			break;
 		}
-		case C_DOUBLE_VAR:
+		case C_DOUBLE_VAR: case C_INT_VAR: case C_VAR_VAR:
 		{
-			break;
-		}
-		case C_INT_VAR:
-		{
-			break;
-		}
-		case C_VAR_VAR:
-		{
+			(*temporaryVariableCount)++;
+			int uniqueOperationId = CodeGetUniqueOperation();
+			return_value |= CodeAddTextToBody("\nMOVE GF@%operand1 ");
+			return_value |= CodeAddSStackItem(item1);
+			return_value |= CodeAddTextToBody("\nMOVE GF@%operand2 ");
+			return_value |= CodeAddSStackItem(item2);
+			return_value |= CodeAddTextToBody("\nTYPE GF@%operand1type GF@%operand1");
+			return_value |= CodeAddTextToBody("\nTYPE GF@%operand2type GF@%operand2");
+			return_value |= CodeAddTextToBody("\nJUMPIFEQ ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
+			return_value |= CodeAddTextToBody(" GF@%operand1type GF@%operand2type");
+			return_value |= CodeAddTextToBody("\nCALL $$operand1ToFloat");
+			return_value |= CodeAddTextToBody("\nCALL $$operand2ToFloat");
+			//LABEL $$operation[uniqueOperationId]compatibility
+			return_value |= CodeAddTextToBody("\nLABEL ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
+			return_value |= CodeAddTextToBody("\nCALL $$operandNumberCompatibility");
+			return_value |= CodeAddTextToBody("\nLT ");
+			return_value |= CodeAddTempVariable(*temporaryVariableCount);
+			return_value |= CodeAddTextToBody(" GF@%operand1 GF@%operand2");
+			return_value |= CodeAddTextToBody("\nNOT ");
+			return_value |= CodeAddTempVariable(*temporaryVariableCount);
+			return_value |= CodeAddTextToBody(" ");
+			return_value |= CodeAddTempVariable(*temporaryVariableCount);
 			break;
 		}
 		default:
@@ -668,14 +815,17 @@ static int SStackRuleIsEqual(SStack_t *Stack, int startingIndex, int *temporaryV
 		}
 		case C_DOUBLE_VAR:
 		{
+			(*temporaryVariableCount)++;
 			break;
 		}
 		case C_INT_VAR:
 		{
+			(*temporaryVariableCount)++;
 			break;
 		}
 		case C_VAR_VAR:
 		{
+			(*temporaryVariableCount)++;
 			break;
 		}
 		default:
@@ -713,18 +863,24 @@ static int SStackRuleIsNotEqual(SStack_t *Stack, int startingIndex, int *tempora
 		}
 		case C_DOUBLE_VAR:
 		{
+			(*temporaryVariableCount)++;
 			break;
 		}
 		case C_INT_VAR:
 		{
+			(*temporaryVariableCount)++;
 			break;
 		}
 		case C_VAR_VAR:
 		{
+			(*temporaryVariableCount)++;
 			break;
 		}
 		default:
-			return PARSE_TYPE_COMP;
+		{
+			(*temporaryVariableCount)++;
+			break;
+		}
 	}
 	Stack->top = Stack->top - 2;
 	return PARSE_OK;
@@ -819,9 +975,6 @@ int SStackReduceByRule(SStack_t *Stack, int *temporaryVariableCount)
 	return SStackUseRule(Stack, startingIndex, temporaryVariableCount);
 }
 
-
-
-
 int SStackPushEnd(SStack_t** Stack)
 {
 	SStackItem_t currentStackItem;
@@ -862,8 +1015,6 @@ ExpressionPrecedence_t SStackGetExpessionPrecedence(SStack_t *stack, SStackItem_
 
 	return predecence;
 }
-
-
 
 void Init_SStack (SStack_t** Stack, size_t size) 
 {

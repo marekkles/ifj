@@ -97,9 +97,10 @@ int CodeAddDouble(double doubleValue);
 int CodeAddVariable(const char *str);
 int CodeAddNil();
 int CodeAddBool(bool boolValue);
+int CodeAddTempVariable(int tempVarNumber);
+int CodeAddLabelName(const char *labelName, int optionalNumber, const char *optionalEnd);
 
 int CodeAddInstruction(CodeInstructions_t instructionCode);
-int CodeAddLabel(const char *labelName);
 
 int CodeAddFunctionCallStart();
 
@@ -127,6 +128,8 @@ int CodeAddIfEnd(int uniqueIfNumber);
 
 int CodeAddTextToBody(const char *text);
 int CodeAddTextToVariables(const char *text);
+int CodeAddNumberToBody(int number);
+int CodeAddNumberToVariables(int number);
 int CodeAddInstruction(CodeInstructions_t instructionCode);
 int CodeDeclareVariable(const char *variableName);
 

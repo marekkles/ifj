@@ -837,19 +837,14 @@ static int Command(DStr_t **dstr, Token_t *token)
         DebugFPuts("  In: <Command> -> while <Expression> do\n", output);
         if((return_value = GetTokenExpect(dstr, token, T_EOL)) != PARSE_OK)
             return return_value;
-
-        if((return_value = CodeAddWhileBody(uniqueWhileNumber)) != PARSE_OK)
-            return return_value;
         
         DebugFPuts("  In: <Command> -> while <Expression> do EOL\n", output);
         if((return_value = GetTokenParser(dstr, token)) != PARSE_OK)
             return return_value;
 
         in_while = 1;
-        if((return_value = CodeAddWhileEnd(uniqueWhileNumber)) != PARSE_OK)
+        if((return_value = CodeAddWhileBody(uniqueWhileNumber)) != PARSE_OK)
             return return_value;
-        if(returnVariable != NULL)
-            if((return_value = CodeMoveNil(returnVariable->key)));
         
         if((return_value = Command(dstr, token)) != PARSE_OK)
             return return_value;
@@ -861,6 +856,11 @@ static int Command(DStr_t **dstr, Token_t *token)
             return return_value;
 
         in_while = 0;
+        if((return_value = CodeAddWhileEnd(uniqueWhileNumber)) != PARSE_OK)
+            return return_value;
+        if(returnVariable != NULL)
+            if((return_value = CodeMoveNil(returnVariable->key)));
+        
 
 
 
@@ -1123,19 +1123,19 @@ static int CodeMoveSStackItem(SymTableItem_t *returnVariable, SStackItem_t *item
     return return_value;
 }
 
-int SymtableCodeAddTemporaryVariable(SymTable_t *symtable, int tempVariableNumber)
+SymTableItem_t * SymtableCodeAddTemporaryVariable(SymTable_t *symtable, int tempVariableNumber)
 {
     char temporaryVariableName[40] = {'\0',};
     sprintf(temporaryVariableName, "%%temp%d", tempVariableNumber);
     SymTableItem_t *tempVariable = SymTableFindItem(symtable, temporaryVariableName);
     if(tempVariable == NULL)
     {
-        if(SymTableAddVariable(symtable, temporaryVariableName) == NULL)
-            return PARSE_INT_ERR;
+        if((tempVariable = SymTableAddVariable(symtable, temporaryVariableName)) == NULL)
+            return NULL;
         else if(CodeDeclareVariable(temporaryVariableName) != PARSE_OK)
-            return PARSE_INT_ERR;
+            return NULL;
     }
-    return PARSE_OK;
+    return tempVariable;
 }
 
 static int Expression(DStr_t **dstr, Token_t *token, DStr_t **nextDstr, Token_t *nextToken, SymTableItem_t *returnVariable)
@@ -1194,10 +1194,16 @@ static int Expression(DStr_t **dstr, Token_t *token, DStr_t **nextDstr, Token_t 
 
             if(oldTemporaryVatiableCount != temporaryVariableCount)
             {
-                if(SymtableCodeAddTemporaryVariable(symtable, temporaryVariableCount) != PARSE_OK)
+                SymTableItem_t *tempItem = SymtableCodeAddTemporaryVariable(symtable, temporaryVariableCount);
+                if(tempItem == NULL)
+                {
+                    Dispose_SStack(&stack);
                     return PARSE_INT_ERR;
+                }        
                 SStackItem_t *top_item = Top_SStack(stack);
-                top_item->dataType = SYM_VARIABLE;
+
+                top_item->dataType = STACK_SYMBOL;
+                top_item->data.symbol = tempItem;
             }
             DebugFPrintSStack(output, stack);
         }

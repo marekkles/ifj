@@ -17,7 +17,7 @@ hash-test: hash-test.o hash.o
 parser-test: parser-test.o debug.o dstr.o parser.o fsm.o symtable.o symbolstack.o codegen.o
 symtable-test: symtable-test.o debug.o dstr.o symtable.o
 error-test: error-test.o error.o
-symbolstack-test: symbolstack-test.o debug.o symbolstack.o symtable.o dstr.o
+symbolstack-test: symbolstack-test.o debug.o symbolstack.o symtable.o dstr.o codegen.o
 codegen-test: codegen-test.o codegen.o dstr.o debug.o
 
 main: main.o fsm.o dstr.o debug.o

@@ -1,8 +1,7 @@
 
-while 0 == 1 <= 2 do
+i = 10.1
 
-end
-
-while 3 < 1.0 do
-
+while i > 3 do
+    print i, "\n"
+    i = i - 1
 end

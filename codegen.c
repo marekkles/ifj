@@ -165,7 +165,6 @@ int CodeInitialize(void)
     instructionList->ifCount = 0;
     instructionList->whileCount = 0;
     instructionList->operationCount = 0;
-    instructionList->temporaryCount = 0;
 
     return PARSE_OK;
 }
@@ -273,6 +272,33 @@ int CodeAddVariable(const char *str)
         return return_value;
     if((return_value = CodeAddTextToBody(str)) != PARSE_OK)
         return return_value;
+    return return_value;
+}
+
+int CodeAddTempVariable(int tempVarNumber)
+{
+    int return_value = PARSE_OK;
+    if((return_value = CodeAddVariable("%temp")) != PARSE_OK)
+        return return_value;
+    if((return_value = CodeAddNumberToBody(tempVarNumber)) != PARSE_OK)
+        return return_value;
+    return return_value;
+}
+int CodeAddLabelName(const char *labelName, int optionalNumber, const char *optionalEnd)
+{
+    int return_value = PARSE_OK;
+    if((return_value = CodeAddTextToBody(labelName)) != PARSE_OK)
+        return return_value;
+    if(optionalNumber != -1)
+    {
+        if((return_value = CodeAddNumberToBody(optionalNumber)) != PARSE_OK)
+            return return_value;
+    }
+    if(optionalEnd != NULL)
+    {
+        if((return_value = CodeAddTextToBody(optionalEnd)) != PARSE_OK)
+            return return_value;
+    }
     return return_value;
 }
 
@@ -639,6 +665,27 @@ int CodeAddTextToVariables(const char *text)
     }
     return PARSE_OK;
 }
+
+int CodeAddNumberToBody(int number)
+{
+    char int_to_string[21] = {0,};
+    sprintf(int_to_string, "%d", number);
+    int return_value = PARSE_OK;
+    if((return_value = CodeAddTextToBody(int_to_string)) != PARSE_OK)
+        return return_value;
+    return return_value;
+}
+
+int CodeAddNumberToVariables(int number)
+{
+    char int_to_string[21] = {0,};
+    sprintf(int_to_string, "%d", number);
+    int return_value = PARSE_OK;
+    if((return_value = CodeAddTextToVariables(int_to_string)) != PARSE_OK)
+        return return_value;
+    return return_value;
+}
+
 int CodeAddInstruction(CodeInstructions_t instructionCode)
 {
     int return_value = PARSE_OK;
