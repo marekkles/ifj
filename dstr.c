@@ -1,3 +1,26 @@
+/**
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                     *
+ *                  Projekt IFJ                        *
+ *                                                     *
+ * Implementace překladače imperativního jazyka IFJ18. *
+ *                                                     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+  
+                       Súbor:
+                      dstr.c
+                      
+                       Popis:
+     Praca so strukturov DStr_t (dynamicky string), 
+     inicializacia, pridavanie znakov, cistenie stringu,
+     odstrnenie stringu, konkateacia, prepis stringu ...
+
+                      Autori:
+               Marek Vaško (xvasko16)
+              Handzuš Daniel (xhandz01)
+                Alexaj Adam (xalexa07)
+*/
+
 #include "dstr.h"
 #include "debug.h"
 

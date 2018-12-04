@@ -1,5 +1,27 @@
+/**
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                     *
+ *                  Projekt IFJ                        *
+ *                                                     *
+ * Implementace překladače imperativního jazyka IFJ18. *
+ *                                                     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+  
+                       Súbor:
+                       fsm.c
+                      
+                       Popis:
+   Implementacia konecneho automatu, funkcii pre prevod
+   textu na cislo, textu na escape sekvenciu, zistovanie
+            klucovych slov, tvoba tokenov
+
+                      Autori:
+               Marek Vaško (xvasko16)
+              Handzuš Daniel (xhandz01)
+                Alexaj Adam (xalexa07)
+*/
+
 #include "fsm.h"
-//int CurrentlyReading[2] = {0, 1};
 
 extern FILE *input;
 

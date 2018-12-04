@@ -1,7 +1,23 @@
 /**
- * Subor fsm.h
- * Testovaci subor pre implementaciu zakladnej syntaktickej analizy
- */
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                     *
+ *                  Projekt IFJ                        *
+ *                                                     *
+ * Implementace překladače imperativního jazyka IFJ18. *
+ *                                                     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+  
+                       Súbor:
+                       dstr.h
+                      
+                       Popis:
+     Hlavickovy subor pre dstr.c, definicia typu DStr_t
+
+                      Autori:
+               Marek Vaško (xvasko16)
+              Handzuš Daniel (xhandz01)
+                Alexaj Adam (xalexa07)
+*/
 
 #include <stdio.h>
 #include <stdlib.h>

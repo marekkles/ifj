@@ -1,3 +1,28 @@
+/**
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                     *
+ *                  Projekt IFJ                        *
+ *                                                     *
+ * Implementace překladače imperativního jazyka IFJ18. *
+ *                                                     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+  
+                       Súbor:
+                      error.h
+                      
+                       Popis:
+        Hlavickovy subor pre error.c Obsahuje
+        definiciu typu ErrorCode_t, sluziaci
+            na urcenie toho ktora chybova 
+                sprava sa ma vypisat
+     
+     
+
+                      Autori:
+               Marek Vaško (xvasko16)
+              Handzuš Daniel (xhandz01)
+                Alexaj Adam (xalexa07)
+*/
 #include <stdio.h>
 #include <stdarg.h>
 #ifndef ERROR_H

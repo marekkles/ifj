@@ -1,3 +1,24 @@
+/**
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                     *
+ *                  Projekt IFJ                        *
+ *                                                     *
+ * Implementace překladače imperativního jazyka IFJ18. *
+ *                                                     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+  
+                       Súbor:
+                      codegen.h
+                      
+                       Popis:
+     Hlavickovy subor pre codegen.c, obsahuje definicie
+     typov CodeInstructions_t a CodeInstructionList_t
+
+                      Autori:
+               Marek Vaško (xvasko16)
+              Handzuš Daniel (xhandz01)
+                Alexaj Adam (xalexa07)
+*/
 #include "token.h"
 #include "dstr.h"
 #include "return.h"

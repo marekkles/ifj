@@ -1,3 +1,27 @@
+/**
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                     *
+ *                  Projekt IFJ                        *
+ *                                                     *
+ * Implementace překladače imperativního jazyka IFJ18. *
+ *                                                     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+  
+                       Súbor:
+                    symbolstack.h
+                      
+                       Popis:
+     Hlavickovy subor pre symbolstack.c, obsahuje
+	  definicie datovych typov ExpressionPrecedence_t
+	pouzitych v precedencnej tabulke, ExpressionTerminal_t
+		pouzitej pri strukture SStackItem_t, strukturu
+			SStackItem_t, a strukturu SStack_t
+
+                      Autori:
+               Marek Vaško (xvasko16)
+              Handzuš Daniel (xhandz01)
+                Alexaj Adam (xalexa07)
+*/
 #ifndef SYMBOLSTACK_H
 #define SYMBOLSTACK_H
 

@@ -1,3 +1,26 @@
+/**
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                     *
+ *                  Projekt IFJ                        *
+ *                                                     *
+ * Implementace překladače imperativního jazyka IFJ18. *
+ *                                                     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+  
+                       Súbor:
+                    symtable.h
+                      
+                       Popis:
+     Hlavickovy subor pre symtable.c obsahuje definicie
+      datovych typov pre tabulku symbolov (SymTable_t,
+            SymTableItem_t) a pre SymTableItem_t 
+               (SymTableSymbolType_t)
+
+                      Autori:
+               Marek Vaško (xvasko16)
+              Handzuš Daniel (xhandz01)
+                Alexaj Adam (xalexa07)
+*/
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
@@ -8,20 +31,11 @@
 #define SYMTABLE_H
 
 typedef enum {SYM_FUNCTION, SYM_VARIABLE} SymTableSymbolType_t;
-typedef enum {
-    VAR_INT,
-    VAR_DOUBLE,
-    VAR_STRING,
-    VAR_NIL,
-    VAR_UNDEFINED
-}SymTableVariableType_t;
 
 typedef struct SymTableItem_s {
     bool local;
     bool def;
     int parameterCount;
-    SymTableVariableType_t variableType;
-
     SymTableSymbolType_t type;
     struct SymTableItem_s *NextPtr;
     char key[];

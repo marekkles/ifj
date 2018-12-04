@@ -1,3 +1,28 @@
+/**
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                     *
+ *                  Projekt IFJ                        *
+ *                                                     *
+ * Implementace překladače imperativního jazyka IFJ18. *
+ *                                                     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+  
+                       Súbor:
+                     symtable.c
+                      
+                       Popis:
+     Implementacia prace so strukturov SymTable_t
+      (tabulkou symbolov), obsahuje funkcie pre
+     inicializaciu, odstanenie, prepnutie kontextu
+    pridavanie prvkov (aj funkcii alebo premennych)
+
+
+                      Autori:
+               Marek Vaško (xvasko16)
+              Handzuš Daniel (xhandz01)
+                Alexaj Adam (xalexa07)
+*/
+
 #include <string.h>
 #include "symtable.h"
 
@@ -127,7 +152,6 @@ SymTableItem_t *SymTableAddVariable(SymTable_t *SymTable, char *str)
     newItem->type = SYM_VARIABLE;
     strcpy(newItem->key, str);
     newItem->local = SymTable->localMode;
-    newItem->variableType = VAR_UNDEFINED;
     return SymTableAddItem(SymTable, newItem);
 }
 bool SymTableAreUndefinedFunctions(SymTable_t *SymTable)

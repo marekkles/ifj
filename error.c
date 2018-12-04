@@ -1,5 +1,26 @@
 #include "error.h"
 
+/**
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                     *
+ *                  Projekt IFJ                        *
+ *                                                     *
+ * Implementace překladače imperativního jazyka IFJ18. *
+ *                                                     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+  
+                       Súbor:
+                      error.c
+                      
+                       Popis:
+     Implementacia funcii pre vystup na chybovy vystup,
+     
+
+                      Autori:
+               Marek Vaško (xvasko16)
+              Handzuš Daniel (xhandz01)
+                Alexaj Adam (xalexa07)
+*/
 
 void ErrorPrintErrorCode(ErrorCode_t errCode, const char *msg)
 {

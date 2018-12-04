@@ -1,8 +1,24 @@
 /**
- * IFJ- Ruby
- * RETURN Values
- */
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                     *
+ *                  Projekt IFJ                        *
+ *                                                     *
+ * Implementace překladače imperativního jazyka IFJ18. *
+ *                                                     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+  
+                       Súbor:
+                      return.h
+                      
+                       Popis:
+     Obsahuje definicie makier pre return z funkcii
+             a hlavneho programu
 
+                      Autori:
+               Marek Vaško (xvasko16)
+              Handzuš Daniel (xhandz01)
+                Alexaj Adam (xalexa07)
+*/
 
 #ifndef _RETURN_H
 #define _RETURN_H

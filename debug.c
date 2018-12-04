@@ -1,3 +1,25 @@
+/**
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                     *
+ *                  Projekt IFJ                        *
+ *                                                     *
+ * Implementace překladače imperativního jazyka IFJ18. *
+ *                                                     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+  
+                       Súbor:
+                      debug.c
+                      
+                       Popis:
+     Implementacia funkcii pre debugovacie vystupy,
+      vypis internych struktur, DebugFPrintf...
+
+                      Autori:
+               Marek Vaško (xvasko16)
+              Handzuš Daniel (xhandz01)
+                Alexaj Adam (xalexa07)
+*/
+
 #include "debug.h"
 
 #ifdef DEBUG

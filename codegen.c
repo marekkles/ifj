@@ -1,3 +1,27 @@
+/**
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                     *
+ *                  Projekt IFJ                        *
+ *                                                     *
+ * Implementace překladače imperativního jazyka IFJ18. *
+ *                                                     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+  
+                       Súbor:
+                      codegen.c
+                      
+                       Popis:
+     Implementacia generovania kodu, praca so strukturou
+     CodeInstructionList_t, generovanie zaciatku programu,
+     koncu prgramu, vstavanych funkcii, pridavanie parametrov
+     funkcii, deklaracia premennych ...
+
+                      Autori:
+               Marek Vaško (xvasko16)
+              Handzuš Daniel (xhandz01)
+                Alexaj Adam (xalexa07)
+*/
+
 #include "codegen.h"
 
 CodeInstructionList_t *instructionList;

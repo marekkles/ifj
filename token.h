@@ -1,4 +1,28 @@
 
+/**
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                     *
+ *                  Projekt IFJ                        *
+ *                                                     *
+ * Implementace překladače imperativního jazyka IFJ18. *
+ *                                                     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+  
+                       Súbor:
+                      token.h
+                      
+                       Popis:
+     Hlavickovy subor obsahuje definiciu typu Token_t
+      pouzivanych v parser a fsm, definuje aj pomocne
+typy pouzivane v Token_t (TokenType_t, TokenOperationType_t
+                TokenKewordType_t)
+
+                      Autori:
+               Marek Vaško (xvasko16)
+              Handzuš Daniel (xhandz01)
+                Alexaj Adam (xalexa07)
+*/
+
 #ifndef TOKEN_H
 
 #define TOKEN_H

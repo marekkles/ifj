@@ -1,3 +1,27 @@
+/**
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                     *
+ *                  Projekt IFJ                        *
+ *                                                     *
+ * Implementace překladače imperativního jazyka IFJ18. *
+ *                                                     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+  
+                       Súbor:
+                    symbolstack.c
+                      
+                       Popis:
+     Obsahuje implementacie prese so strukturov SStack_t
+	  co obsahuje zaroven aj pravidla pre redukciu
+	  vyrazov pomocou predecencnej tabulky, a nasledne
+	  	 generovanie kodu podla danych pravidiel
+
+                      Autori:
+               Marek Vaško (xvasko16)
+              Handzuš Daniel (xhandz01)
+                Alexaj Adam (xalexa07)
+*/
+
 #include "symbolstack.h"
 
 char *SStackAlocateCopyString(char *originalString)
