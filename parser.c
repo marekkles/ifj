@@ -232,7 +232,6 @@ static int ParseInternalInlineFunction(int iternalInlineFunctionNumber, SymTable
             }
             if((return_value = CodeAddTextToBody(" string")) != PARSE_OK)
                 return return_value;
-            returnVariable->variableType = VAR_STRING;
             break;
         }
         case FUN_INPUTI:
@@ -255,7 +254,6 @@ static int ParseInternalInlineFunction(int iternalInlineFunctionNumber, SymTable
             }
             if((return_value = CodeAddTextToBody(" int")) != PARSE_OK)
                 return return_value;
-            returnVariable->variableType = VAR_INT;
             break;
         }
         case FUN_INPUTF:
@@ -278,7 +276,6 @@ static int ParseInternalInlineFunction(int iternalInlineFunctionNumber, SymTable
             }
             if((return_value = CodeAddTextToBody(" float")) != PARSE_OK)
                 return return_value;
-            returnVariable->variableType = VAR_DOUBLE;
             break;
         }
         case FUN_PRINT:
