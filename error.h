@@ -25,6 +25,7 @@
 */
 #include <stdio.h>
 #include <stdarg.h>
+#include "return.h"
 #ifndef ERROR_H
 
 #define ERROR_H
@@ -40,6 +41,7 @@ typedef enum {
     ERR_INT,
 } ErrorCode_t;
 
+ErrorCode_t ErrorCodeFromReturn(int returnValue);
 void ErrorPrintErrorCode(ErrorCode_t errCode, const char *msg);
 void ErrorPrintf(const char *fmt, ...);
 void ErrorPuts(const char *str);

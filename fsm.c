@@ -23,7 +23,7 @@
 
 #include "fsm.h"
 
-extern FILE *input;
+//extern FILE *input;
 
 typedef enum {
     //Initial state
@@ -456,7 +456,7 @@ static int IsKeyword(const char *potential_keyword)
  * @param DStr input DStr
  * @param state What was the fsm final state
  */
-static int PocessToToken(Token_t *token, DStr_t **DStr, FSMState_t state)
+static int ProcessToToken(Token_t *token, DStr_t **DStr, FSMState_t state)
 {
     if(state == S_POTENTIAL_IDENTIFIER_READ || state == S_IDENTIFIER_READ || state == S_FUNCTION)
     {
@@ -594,7 +594,7 @@ int GetToken(DStr_t **DStr, Token_t *token)
         //DebugFPrintf(stdout, "Reading char: %c\n", (char)read_char);
         //DebugFPrintf(stdout, "State: %s -> ", states_names[state]);
 
-        read_char = (no_read)?read_char:fgetc(input);
+        read_char = (no_read)?read_char:fgetc(stdin);
         no_read = 0;
 
         if(DStrAddChar(DStr, read_char) == 0)
@@ -643,12 +643,6 @@ int GetToken(DStr_t **DStr, Token_t *token)
             */
             case S_INITIAL:
             {
-                /*if (read_char == '\n')
-                {
-                    DStrDeleteLast(*DStr);
-                    state = S_EOL;
-                    stop = 1;
-                }*/
                 if (read_char == ' ' || read_char == '\t')
                 {
                     DStrDeleteLast(*DStr);
@@ -1451,5 +1445,5 @@ int GetToken(DStr_t **DStr, Token_t *token)
     if(state == S_ERROR)
         return GET_TOKEN_LEX_ERR;
     
-    return PocessToToken(token, DStr, state);
+    return ProcessToToken(token, DStr, state);
 }

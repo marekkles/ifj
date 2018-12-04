@@ -20,7 +20,7 @@ error-test: error-test.o error.o
 symbolstack-test: symbolstack-test.o debug.o symbolstack.o symtable.o dstr.o codegen.o
 codegen-test: codegen-test.o codegen.o dstr.o debug.o
 
-main: main.o fsm.o dstr.o debug.o
+main: main.o debug.o dstr.o parser.o fsm.o symtable.o symbolstack.o codegen.o error.o
 
 %.o: %.c
 	${CC} ${CFLAGS} -c $^ -o $@

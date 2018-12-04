@@ -22,6 +22,29 @@
                 Alexaj Adam (xalexa07)
 */
 
+ErrorCode_t ErrorCodeFromReturn(int returnValue)
+{
+    switch(returnValue)
+    {
+        case PARSE_LEX_ERR:
+            return ERR_LEX;
+        case PARSE_SYN_ERR:
+            return ERR_SYN;
+        case PARSE_UNDEF_VAR:
+            return ERR_SEM;
+        case PARSE_TYPE_COMP:
+            return ERR_COMP;
+        case PARSE_PARAM_COUNT:
+            return ERR_PAR;
+        case PARSE_OTHER:
+            return ERR_OTH;
+        case PARSE_ZERO_DIV:
+            return ERR_ZDIV;
+        case PARSE_INT_ERR:
+            return ERR_INT;
+    }
+}
+
 void ErrorPrintErrorCode(ErrorCode_t errCode, const char *msg)
 {
     
