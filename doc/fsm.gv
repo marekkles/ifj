@@ -11,79 +11,146 @@ digraph finite_state_machine {
 	node [shape = doublecircle]; 
 	S_EOL S_IDENTIFIER_READ S_POTENTIAL_IDENTIFIER_READ S_FUNCTION S_INT_READ S_INT_ZERO S_INT_BIN1 S_INT_OCT S_INT_HEX1 S_DOUBLE_DEC_READ S_DOUBLE_EXP_NUM S_STR_END S_LESSER_THAN S_GREATER_THAN S_ASSIGNMENT S_EQUAL_TO S_NOT_EQUAL_TO S_MULTIPLY S_DIVIDE S_ADD S_SUBTRACT S_ERROR S_GREATER_EQUAL_THAN S_LESSER_EQUAL_THAN S_LBRACKET S_RBRACKET S_COMMA;
 	node [shape = circle];
-	S_INITIAL -> S_EOL [label = "\\n"];
+
 	S_INITIAL -> S_INITIAL [label = "\\s \\t"];
-	S_INITIAL -> S_ERROR [label = other];
-	S_INITIAL -> S_COMMENT_READ [ label = "#" ];
-	S_COMMENT_READ -> S_COMMENT_READ [ label = "not \\n" ];
-	S_COMMENT_READ -> S_INITIAL [ label = "\\n" ];
-    
-    S_INITIAL -> S_IDENTIFIER_READ [ label = "_"];
+	S_INITIAL -> S_EOF [label = "EOF"];
+	S_INITIAL -> S_EOL [label = "\\n"];
+	S_INITIAL -> S_BLOCK_COMMENT0 [label = "=  1 "];  // TO DO LABEL
 	S_INITIAL -> S_POTENTIAL_IDENTIFIER_READ [ label = "[a-z]"];
-	S_POTENTIAL_IDENTIFIER_READ -> S_IDENTIFIER_READ [ label = "([A-Z], [0-9])"];
-	S_POTENTIAL_IDENTIFIER_READ -> S_POTENTIAL_IDENTIFIER_READ [ label = "[a-z]"];
-	S_IDENTIFIER_READ -> S_IDENTIFIER_READ [ label = "([a-z], [A-Z], [0-9])"];
-	S_IDENTIFIER_READ -> S_FUNCTION [ label = "(!, ?)"];
-	S_POTENTIAL_IDENTIFIER_READ -> S_FUNCTION [ label = "(!, ?)"];
-
-    //Stases for 0 and other integer values
-	S_INITIAL -> S_INT_ZERO [ label = "0"]; 
-    S_INITIAL -> S_INT_READ [ label = "[1-9]"];
-	S_INT_READ -> S_INT_READ [ label = "[0-9]"]; 
-
-	S_INT_READ -> S_DOUBLE_EXP [ label = "(e, E)"]; 
-	
-	S_INT_READ -> S_DOUBLE_POINT [ label = "."]; 
-	S_INT_ZERO -> S_DOUBLE_POINT [ label = "."]; 
-    S_DOUBLE_POINT -> S_DOUBLE_DEC_READ [ label = "[0-9]"]; 
-	S_DOUBLE_POINT -> S_ERROR [ label = "other"]; 
-	S_DOUBLE_DEC_READ -> S_DOUBLE_DEC_READ [label = "[0-9]"];
-	S_DOUBLE_DEC_READ -> S_DOUBLE_EXP [ label = "(e, E)"]; 
-	S_DOUBLE_EXP -> S_DOUBLE_EXP_SIGN [label = "(+, -)"];
-	S_DOUBLE_EXP -> S_DOUBLE_EXP_NUM [label = "[0-9]"];
-	S_DOUBLE_EXP -> S_ERROR [label = "other"];
-	S_DOUBLE_EXP_SIGN -> S_DOUBLE_EXP_NUM [label = "[0-9]"];
-	S_DOUBLE_EXP_NUM -> S_DOUBLE_EXP_NUM [label = "[0-9]"];
-	S_DOUBLE_EXP_SIGN -> S_ERROR [label = "other"];
-
-    S_INT_ZERO -> S_INT_BIN0 [label = "b"];
-    S_INT_ZERO -> S_INT_OCT [label = "[0-9]"]; 
-    S_INT_ZERO -> S_INT_HEX0 [label = "x"];
-	S_INT_ZERO -> S_ERROR [label = "[8-9]"];
-	S_INT_BIN0 -> S_INT_BIN1 [label = "[0-1]"];
-	S_INT_OCT -> S_INT_OCT [label = "[0-7]"];
-	S_INT_HEX0 -> S_INT_HEX1 [label = "([0-9], [A-F], [a-f])"];
-	S_INT_BIN0 -> S_ERROR [label = "other"];
-	S_INT_HEX0 -> S_ERROR [label = "other"];
-	S_INT_BIN1 -> S_INT_BIN1 [label = "[0-1]"];
-	S_INT_HEX1 -> S_INT_HEX1 [label = "([0-9], [A-F], [a-f])"]; 
-    
-    S_INITIAL -> S_STR_READ [label = "\""];
-	S_STR_READ -> S_STR_READ [label = "not \\n not \""];
-    S_STR_READ -> S_STR_ESC [label = "\\"];
-	S_STR_ESC -> S_STR_READ [label = "(\", n, s, \\)"];
-    S_STR_ESC -> S_STR_HEX [label = "x"];
-	S_STR_ESC -> S_ERROR [label = "other"];
-    S_STR_HEX -> S_STR_HEX1 [label = "([0-9], [A-F], [a-f])"]; 
-	S_STR_HEX -> S_ERROR [label = "other"];
-    S_STR_HEX1 -> S_STR_READ [label = "([0-9], [A-F], [a-f])"];
-	S_STR_HEX1 -> S_ERROR [label = "other"];
-    S_STR_READ -> S_STR_END [label = "\""];
-	S_STR_READ -> S_ERROR [label = "\\n"];
-    
-    S_INITIAL -> S_LESSER_THAN [label = "<"];
-	S_LESSER_THAN -> S_LESSER_EQUAL_THAN [label = "="];
-    S_INITIAL -> S_GREATER_THAN [label = ">"];
-	S_GREATER_THAN -> S_GREATER_EQUAL_THAN [label = "="];
+	S_INITIAL -> S_IDENTIFIER_READ [ label = "_"];
+	S_INITIAL -> S_INT_READ [ label = "[1-9]"];
+	S_INITIAL -> S_INT_ZERO [ label = "0"];
+	S_INITIAL -> S_STR_READ [label = "\""];
+	S_INITIAL -> S_COMMENT_READ [label = "\\#"];
+	S_INITIAL -> S_LESSER_THAN [label = "<"];
+	S_INITIAL -> S_GREATER_THAN [label = ">"];
 	S_INITIAL -> S_ASSIGNMENT [label = "="];
-	S_ASSIGNMENT -> S_EQUAL_TO [label = "="];
-    S_INITIAL -> S_EXCLAMATION_MARK [label = "!"];
-    S_EXCLAMATION_MARK -> S_NOT_EQUAL_TO [label = "="];
-    S_INITIAL -> S_MULTIPLY [label = "*"];
+	S_INITIAL -> S_EXCLAMATION_MARK [label = "!"];
+	S_INITIAL -> S_MULTIPLY [label = "*"];
     S_INITIAL -> S_DIVIDE [label = "/"];
     S_INITIAL -> S_ADD [label = "+"];
     S_INITIAL -> S_SUBTRACT [label = "-"];
 	S_INITIAL -> S_LBRACKET [label = "("];
 	S_INITIAL -> S_RBRACKET [label = ")"];
 	S_INITIAL -> S_COMMA [label = ","];
+	S_INITIAL -> S_ERROR [label = "other" ];
+
+
+	S_EOL -> S_EOL [label = "\\t \\s \\n "];
+
+	S_POTENTIAL_IDENTIFIER_READ -> S_POTENTIAL_IDENTIFIER_READ [label = "[a-z]"];
+	S_POTENTIAL_IDENTIFIER_READ -> S_IDENTIFIER_READ [label = "[A-Z]"];
+	S_POTENTIAL_IDENTIFIER_READ -> S_FUNCTION [label = "\\! \\?"];
+
+	S_IDENTIFIER_READ -> S_IDENTIFIER_READ [label = "[a-z] [A-Z]"];
+	S_IDENTIFIER_READ -> S_FUNCTION [ label = "(!, ?)"];
+
+	S_INT_READ -> S_INT_READ [ label = "[0-9]"];
+	S_INT_READ -> S_DOUBLE_POINT [ label = "."];
+	S_INT_READ -> S_DOUBLE_EXP [ label = "(e, E)"];
+
+	S_INT_ZERO -> S_INT_BIN0 [label = "b"];
+    S_INT_ZERO -> S_INT_OCT [label = "[0-9]"]; 
+    S_INT_ZERO -> S_INT_HEX0 [label = "x"];
+	S_INT_ZERO -> S_ERROR [label = "[8-9]"];
+	S_INT_ZERO -> S_DOUBLE_POINT [ label = "."];
+
+	
+	S_STR_READ -> S_STR_READ [label = "not \\n not \""];
+    S_STR_READ -> S_STR_END [label = "\""];
+	S_STR_READ -> S_STR_ESC [label = "\\"];
+	S_STR_READ -> S_ERROR [label = "\\n"];
+    
+	S_COMMENT_READ -> S_COMMENT_READ [ label = "not \\n"];
+
+	S_LESSER_THAN -> S_LESSER_EQUAL_THAN [label = "="];
+
+	S_GREATER_THAN -> S_GREATER_EQUAL_THAN [label = "="];
+
+	S_ASSIGNMENT -> S_EQUAL_TO [label = "="];
+
+	S_EXCLAMATION_MARK -> S_NOT_EQUAL_TO [label = "="];
+
+	//DEPTH II.
+
+	S_DOUBLE_POINT -> S_DOUBLE_DEC_READ [ label = "[0-9]"]; 
+	S_DOUBLE_POINT -> S_ERROR [ label = "other"]; 
+	
+	S_DOUBLE_EXP -> S_DOUBLE_EXP_NUM [label = "[0-9]"];
+	S_DOUBLE_EXP -> S_DOUBLE_EXP_SIGN [label = "(+, -)"];
+	S_DOUBLE_EXP -> S_ERROR [label = "other"];
+	
+	S_INT_BIN0 -> S_INT_BIN1 [label = "[0-1]"];
+	S_INT_BIN0 -> S_ERROR [label = "other"];
+
+	S_INT_OCT -> S_INT_OCT [label = "[0-7]"];
+
+	S_INT_HEX0 -> S_INT_HEX1 [label = "([0-9], [A-F], [a-f])"];
+	S_INT_HEX0 -> S_ERROR [label = "other"];
+	
+	S_STR_ESC -> S_STR_READ [label = "(\", n, s, \\)"];
+    S_STR_ESC -> S_STR_HEX [label = "x"];
+	S_STR_ESC -> S_ERROR [label = "other"];
+    
+	//DEPTH III.
+	S_DOUBLE_DEC_READ -> S_DOUBLE_DEC_READ [label = "[0-9]"];
+	S_DOUBLE_DEC_READ -> S_DOUBLE_EXP [ label = "(e, E)"]; 
+	
+	S_DOUBLE_EXP_NUM -> S_DOUBLE_EXP_NUM [label = "[0-9]"];
+
+	S_DOUBLE_EXP_SIGN -> S_DOUBLE_EXP_NUM [label = "[0-9]"];
+	S_DOUBLE_EXP_SIGN -> S_ERROR [label = "other"];
+
+	S_INT_BIN1 -> S_INT_BIN1 [label = "[0-1]"];
+
+	S_INT_HEX1 -> S_INT_HEX1 [label = "([0-9], [A-F], [a-f])"];
+
+	S_STR_HEX -> S_STR_HEX1 [label = "([0-9], [A-F], [a-f])"]; 
+	S_STR_HEX -> S_ERROR [label = "other"];
+    
+
+	//DEPTH IV.
+	S_STR_HEX1 -> S_STR_READ [label = "([0-9], [A-F], [a-f])"];
+	S_STR_HEX1 -> S_ERROR [label = "other"];
+    
+	//BLOCK COMMENTS
+
+	S_BLOCK_COMMENT0 -> S_BLOCK_COMMENT1 [ label = "b"];
+	S_BLOCK_COMMENT0 -> S_ERROR [label = "other"];
+
+	S_BLOCK_COMMENT1 -> S_BLOCK_COMMENT2 [ label = "e"];
+	S_BLOCK_COMMENT1 -> S_ERROR [ label = "other"];
+
+	S_BLOCK_COMMENT2 -> S_BLOCK_COMMENT3 [label = "g"];
+	S_BLOCK_COMMENT2 -> S_ERROR [label = "other"];
+
+	S_BLOCK_COMMENT3 -> S_BLOCK_COMMENT4 [label = "i"];
+	S_BLOCK_COMMENT3 -> S_ERROR [label = "other"];
+
+	S_BLOCK_COMMENT4 -> S_BLOCK_COMMENT5 [label = "n"];
+	S_BLOCK_COMMENT4 -> S_ERROR [label = "other"];
+
+	S_BLOCK_COMMENT5 -> S_BLOCK_COMMENT_END0 [label = "\n"];
+	S_BLOCK_COMMENT5 -> S_ERROR [label = "other"];
+
+
+	S_BLOCK_COMMENT_END0 -> S_BLOCK_COMMENT_END1 [label = "="];
+	S_BLOCK_COMMENT_END0 -> S_BLOCK_COMMENT_END0 [label = "\n"];
+	S_BLOCK_COMMENT_END0 -> S_ERROR [label = "EOF"];
+
+	S_BLOCK_COMMENT_END1 -> S_BLOCK_COMMENT_END2 [label = "e"];
+	S_BLOCK_COMMENT_END1 -> S_ERROR [label = "EOF"];
+	S_BLOCK_COMMENT_END1 -> S_BLOCK_COMMENT [label = "other"];
+
+	S_BLOCK_COMMENT_END2 -> S_BLOCK_COMMENT_END3 [label = "n"];
+	S_BLOCK_COMMENT_END2 -> S_ERROR [label = "EOF"];
+	S_BLOCK_COMMENT_END2 -> S_BLOCK_COMMENT [label = "other"];
+
+	S_BLOCK_COMMENT_END3 -> S_BLOCK_COMMENT_END4 [label = "d"];
+	S_BLOCK_COMMENT_END3 -> S_ERROR [label = "EOF"];
+	S_BLOCK_COMMENT_END3 -> S_BLOCK_COMMENT [label = "other"];
+
+	S_BLOCK_COMMENT_END4 -> S_BLOCK_COMMENT_END4 [label = "\n"];
+	S_BLOCK_COMMENT_END4 -> S_EOF [label = "EOF"]
+	S_BLOCK_COMMENT_END4 -> S_INITIAL [label = "other"];
 }

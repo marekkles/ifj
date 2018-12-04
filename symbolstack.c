@@ -23,7 +23,13 @@
 */
 
 #include "symbolstack.h"
-
+/**
+ * Function will allocate memmory of size of originalString
+ * and it will copy its content to newly allocated space.
+ * In case of error it will return NULL, else pointer to
+ * allocated string.
+ * @param string Pointer to string to free
+*/
 char *SStackAlocateCopyString(char *originalString)
 {
 	size_t originalStringSize = strlen(originalString)+1;
@@ -34,10 +40,22 @@ char *SStackAlocateCopyString(char *originalString)
 	strcpy(returnString, originalString);
 	return returnString;
 }
+/**
+ * Function will free alocated string.
+ * @param string Pointer to string to free
+*/
 void SStackFreeString(char *string)
 {
 	free(string);
 }
+/**
+ * Function will process token and synamic string to stack
+ * item. If conversion goes as planed it will return PARSE_INT_ERR
+ * else it will return PARSE_OK.
+ * @param dstr pointer to dynamic string
+ * @param token Pointer to token
+ * @param resultingItem Item to save resulting stack item to
+*/
 int SStackProcessTokenToItem(DStr_t *dstr, Token_t *token, SStackItem_t *resultingItem)
 {
 	resultingItem->isLessThan = false;
@@ -153,7 +171,12 @@ int SStackProcessTokenToItem(DStr_t *dstr, Token_t *token, SStackItem_t *resulti
 	}
 	return PARSE_OK;
 }
-
+/**
+ * Function will return index of first terminal
+ * from top of the stack. It will return -1
+ * if there is no terminal
+ * @param Stack Stack to use
+*/
 int SStackTopTerminalIndex(SStack_t *Stack)
 {
 	for(int i = Stack->top; i >= 0; i--)
@@ -163,7 +186,12 @@ int SStackTopTerminalIndex(SStack_t *Stack)
 	}
 	return -1;
 }
-
+/**
+ * Function will return pointer to first terminal
+ * from top of the stack. It will return NULL
+ * if there is no terminal
+ * @param Stack Stack to use
+*/
 SStackItem_t *SStackTopTerminal(SStack_t *Stack)
 {
 	int topTerminalIndex = SStackTopTerminalIndex(Stack);
@@ -171,7 +199,13 @@ SStackItem_t *SStackTopTerminal(SStack_t *Stack)
 		return &(Stack->stack[topTerminalIndex]); 
 	return NULL;
 }
-
+/**
+ * Function will return index of first item
+ * from top of the stack which has < flag.
+ * It will return -1 if there there is no
+ * item with < flag.
+ * @param Stack Stack to use
+*/
 int SStackTopLTIndex(SStack_t *Stack)
 {
 	for(int i = Stack->top; i >= 0; i--)
@@ -181,7 +215,13 @@ int SStackTopLTIndex(SStack_t *Stack)
 	}
 	return -1;
 }
-
+/**
+ * Function will return pointer to first item
+ * from top of the stack which has < flag.
+ * It will return NULL if there there is no
+ * item with < flag.
+ * @param Stack Stack to use
+*/
 SStackItem_t *SStackTopLT(SStack_t *Stack)
 {
 	int topLTIndex = SStackTopLTIndex(Stack);
@@ -189,7 +229,10 @@ SStackItem_t *SStackTopLT(SStack_t *Stack)
 		return &(Stack->stack[topLTIndex]); 
 	return NULL;
 }
-
+/**
+ * Function will add < flag to top terminal
+ * @param Stack Stack to use
+*/
 int SStackTopTerminalAddLT(SStack_t *Stack)
 {
 	SStackItem_t *topTerminal = SStackTopTerminal(Stack);
@@ -199,7 +242,9 @@ int SStackTopTerminalAddLT(SStack_t *Stack)
 	return PARSE_OK;
 }
 
-
+/**
+ * Enum used to classify what combination of type are Stack items
+*/
 typedef enum {
 	C_NIL_NIL, C_INT_INT, C_DOUBLE_DOUBLE, C_STRING_STRING, C_VAR_VAR,
 	C_NIL_INT, C_NIL_DOUBLE, C_NIL_STRING, C_NIL_VAR,
@@ -209,6 +254,11 @@ typedef enum {
 	C_OTHER
 } OperandsCombinations_t;
 
+/**
+ * Function will return combination of two items from OperandsCombinations_t
+ * @param item1 First item to compare
+ * @param item2 Second item to compare
+*/
 static int SStackWhatAreItems(SStackItem_t *item1, SStackItem_t *item2)
 {
 	OperandsCombinations_t return_value = C_OTHER;
@@ -254,13 +304,21 @@ static int SStackWhatAreItems(SStackItem_t *item1, SStackItem_t *item2)
 		return_value = C_STRING_VAR;
 	return return_value;
 }
+/**
+ * Function will return double value of item, if it is int it will be converted
+ * @param item Stack item to convert
+*/
 static double SStackGetItemDoubleValue(SStackItem_t *item)
 {
 	if(item->dataType == STACK_INT)
 		return (double)item->data.intValue;
 	return item->data.doubleValue;
 }
-
+/**
+ * Function will add stack item in neccesary form, to code in compatible form
+ * In case of error it will return PARSE_INT_ERR else PARSE_OK
+ * @param item Stack item to add to code
+*/
 static int CodeAddSStackItem(SStackItem_t *item)
 {
 	int return_value = PARSE_OK;
@@ -280,7 +338,14 @@ static int CodeAddSStackItem(SStackItem_t *item)
         return PARSE_INT_ERR;
     return return_value;
 } 
-
+/**
+ * Function will find efficient way to reduce two items to addition,
+ * if they are constant it will not add anything to code,
+ * Code is added only if one of them is variable.
+ * @param Stack stack to use
+ * @param startingIndex Index to start reduction from
+ * @param temporaryVariableCount Pointer to counter of temtorary variables
+*/
 static int SStackRuleAddition(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
@@ -359,12 +424,13 @@ static int SStackRuleAddition(SStack_t *Stack, int startingIndex, int *temporary
 			//LABEL $$operation[uniqueOperationId]end
 			return_value |= CodeAddTextToBody("\nLABEL ");
 			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "end");
+			
 			if(return_value != PARSE_OK)
 				return PARSE_INT_ERR;
-			if(item2->dataType == STACK_STRING)
-				SStackFreeString(item2->data.string);
 			if(item1->dataType == STACK_STRING)
 				SStackFreeString(item1->data.string);
+			if(item2->dataType == STACK_STRING)
+				SStackFreeString(item2->data.string);
 			break;
 		}
 		default:
@@ -373,6 +439,16 @@ static int SStackRuleAddition(SStack_t *Stack, int startingIndex, int *temporary
 	Stack->top = Stack->top - 2;
 	return return_value;
 }
+/**
+ * Function will find efficient way to reduce two items to subtraction,
+ * if they are constant it will not add anything to code,
+ * Code is added only if one of them is variable. It will return PARSE_OK if everything
+ * went ok, PARSE_INT_ERR if code addition went wrong, PARSE_TYPE_COMP if operands
+ * are of incompatible type/
+ * @param Stack stack to use
+ * @param startingIndex Index to start reduction from
+ * @param temporaryVariableCount Pointer to counter of temtorary variables
+*/
 static int SStackRuleSubtraction(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
@@ -404,29 +480,27 @@ static int SStackRuleSubtraction(SStack_t *Stack, int startingIndex, int *tempor
 			(*temporaryVariableCount)++;
 			int uniqueOperationId = CodeGetUniqueOperation();
 
-			CodeAddTextToBody("\nMOVE GF@%operand1 ");
-			CodeAddSStackItem(item1);
-			CodeAddTextToBody("\nMOVE GF@%operand2 ");
-			CodeAddSStackItem(item2);
-			CodeAddTextToBody("\nTYPE GF@%operand1type GF@%operand1");
-			CodeAddTextToBody("\nTYPE GF@%operand2type GF@%operand2");
-			CodeAddTextToBody("\nJUMPIFEQ ");
-			CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
-			CodeAddTextToBody(" GF@%operand1type GF@%operand2type");
+			return_value |= CodeAddTextToBody("\nMOVE GF@%operand1 ");
+			return_value |= CodeAddSStackItem(item1);
+			return_value |= CodeAddTextToBody("\nMOVE GF@%operand2 ");
+			return_value |= CodeAddSStackItem(item2);
+			return_value |= CodeAddTextToBody("\nTYPE GF@%operand1type GF@%operand1");
+			return_value |= CodeAddTextToBody("\nTYPE GF@%operand2type GF@%operand2");
+			return_value |= CodeAddTextToBody("\nJUMPIFEQ ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
+			return_value |= CodeAddTextToBody(" GF@%operand1type GF@%operand2type");
+			return_value |= CodeAddTextToBody("\nCALL $$operand1ToFloat");
+			return_value |= CodeAddTextToBody("\nCALL $$operand2ToFloat");
+			return_value |= CodeAddTextToBody("\nLABEL ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
+			return_value |= CodeAddTextToBody("\nCALL $$operandNumberCompatibility");
+			return_value |= CodeAddTextToBody("\nSUB ");
+			return_value |= CodeAddTempVariable(*temporaryVariableCount);
+			return_value |= CodeAddTextToBody(" GF@%operand1 GF@%operand2");
 
-			CodeAddTextToBody("\nCALL $$operand1ToFloat");
-			CodeAddTextToBody("\nCALL $$operand2ToFloat");
-
-			CodeAddTextToBody("\nLABEL ");
-			CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
-			CodeAddTextToBody("\nCALL $$operandNumberCompatibility");
-			CodeAddTextToBody("\nSUB ");
-			CodeAddTempVariable(*temporaryVariableCount);
-			CodeAddTextToBody(" GF@%operand1 GF@%operand2");
-
-			if(item1->dataType == STACK_STRING)
-				SStackFreeString(item1->data.string);
-			item1->dataType = STACK_SYMBOL;
+			if(return_value != PARSE_OK)
+				return PARSE_INT_ERR;
+			
 			break;
 		}
 		default:
@@ -435,6 +509,16 @@ static int SStackRuleSubtraction(SStack_t *Stack, int startingIndex, int *tempor
 	Stack->top = Stack->top - 2;
 	return PARSE_OK;
 }
+/**
+ * Function will find efficient way to reduce two items to multiplication,
+ * if they are constant it will not add anything to code,
+ * Code is added only if one of them is variable. It will return PARSE_OK if everything
+ * went ok, PARSE_INT_ERR if code addition went wrong, PARSE_TYPE_COMP if operands
+ * are of incompatible type.
+ * @param Stack stack to use
+ * @param startingIndex Index to start reduction from
+ * @param temporaryVariableCount Pointer to counter of temtorary variables
+*/
 static int SStackRuleMultiplication(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
@@ -465,30 +549,25 @@ static int SStackRuleMultiplication(SStack_t *Stack, int startingIndex, int *tem
 		{
 			(*temporaryVariableCount)++;
 			int uniqueOperationId = CodeGetUniqueOperation();
-
-			CodeAddTextToBody("\nMOVE GF@%operand1 ");
-			CodeAddSStackItem(item1);
-			CodeAddTextToBody("\nMOVE GF@%operand2 ");
-			CodeAddSStackItem(item2);
-			CodeAddTextToBody("\nTYPE GF@%operand1type GF@%operand1");
-			CodeAddTextToBody("\nTYPE GF@%operand2type GF@%operand2");
-			CodeAddTextToBody("\nJUMPIFEQ ");
-			CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
-			CodeAddTextToBody(" GF@%operand1type GF@%operand2type");
-
-			CodeAddTextToBody("\nCALL $$operand1ToFloat");
-			CodeAddTextToBody("\nCALL $$operand2ToFloat");
-
-			CodeAddTextToBody("\nLABEL ");
-			CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
-			CodeAddTextToBody("\nCALL $$operandNumberCompatibility");
-			CodeAddTextToBody("\nMUL ");
-			CodeAddTempVariable(*temporaryVariableCount);
-			CodeAddTextToBody(" GF@%operand1 GF@%operand2");
-
-			if(item1->dataType == STACK_STRING)
-				SStackFreeString(item1->data.string);
-			item1->dataType = STACK_SYMBOL;
+			return_value |= CodeAddTextToBody("\nMOVE GF@%operand1 ");
+			return_value |= CodeAddSStackItem(item1);
+			return_value |= CodeAddTextToBody("\nMOVE GF@%operand2 ");
+			return_value |= CodeAddSStackItem(item2);
+			return_value |= CodeAddTextToBody("\nTYPE GF@%operand1type GF@%operand1");
+			return_value |= CodeAddTextToBody("\nTYPE GF@%operand2type GF@%operand2");
+			return_value |= CodeAddTextToBody("\nJUMPIFEQ ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
+			return_value |= CodeAddTextToBody(" GF@%operand1type GF@%operand2type");
+			return_value |= CodeAddTextToBody("\nCALL $$operand1ToFloat");
+			return_value |= CodeAddTextToBody("\nCALL $$operand2ToFloat");
+			return_value |= CodeAddTextToBody("\nLABEL ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "compatibility");
+			return_value |= CodeAddTextToBody("\nCALL $$operandNumberCompatibility");
+			return_value |= CodeAddTextToBody("\nMUL ");
+			return_value |= CodeAddTempVariable(*temporaryVariableCount);
+			return_value |= CodeAddTextToBody(" GF@%operand1 GF@%operand2");
+			if(return_value != PARSE_OK)
+				return PARSE_INT_ERR;
 			break;
 		}
 		default:
@@ -497,6 +576,16 @@ static int SStackRuleMultiplication(SStack_t *Stack, int startingIndex, int *tem
 	Stack->top = Stack->top - 2;
 	return PARSE_OK;
 }
+/**
+ * Function will find efficient way to reduce two items to division,
+ * if they are constant it will not add anything to code,
+ * Code is added only if one of them is variable.  It will return PARSE_OK if everything
+ * went ok, PARSE_INT_ERR if code addition went wrong, PARSE_TYPE_COMP if operands
+ * are of incompatible type.
+ * @param Stack stack to use
+ * @param startingIndex Index to start reduction from
+ * @param temporaryVariableCount Pointer to counter of temtorary variables
+*/
 static int SStackRuleDivision(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
@@ -532,36 +621,35 @@ static int SStackRuleDivision(SStack_t *Stack, int startingIndex, int *temporary
 		{
 			(*temporaryVariableCount)++;
 			int uniqueOperationId = CodeGetUniqueOperation();
-			CodeAddTextToBody("\nMOVE GF@%operand1 ");
-			CodeAddSStackItem(item1);
-			CodeAddTextToBody("\nMOVE GF@%operand2 ");
-			CodeAddSStackItem(item2);
-			CodeAddTextToBody("\nTYPE GF@%operand1type GF@%operand1");
-			CodeAddTextToBody("\nTYPE GF@%operand2type GF@%operand2");
-			CodeAddTextToBody("\nJUMPIFNEQ ");
-			CodeAddLabelName("$$operation", uniqueOperationId, "conevert");
-			CodeAddTextToBody(" GF@%operand1type string@int");
-			CodeAddTextToBody("\nJUMPIFNEQ ");
-			CodeAddLabelName("$$operation", uniqueOperationId, "conevert");
-			CodeAddTextToBody(" GF@%operand2type string@int");
-			CodeAddTextToBody("\nIDIV ");
-			CodeAddTempVariable(*temporaryVariableCount);
-			CodeAddTextToBody(" GF@%operand1 GF@%operand2");
-			CodeAddTextToBody("\nJUMP ");
-			CodeAddLabelName("$$operation", uniqueOperationId, "end");
-			CodeAddTextToBody("\nLABEL ");
-			CodeAddLabelName("$$operation", uniqueOperationId, "conevert");
-			CodeAddTextToBody("\nCALL $$operand1ToFloat");
-			CodeAddTextToBody("\nCALL $$operand2ToFloat");
-			CodeAddTextToBody("\nCALL $$operandNumberCompatibility");
-			CodeAddTextToBody("\nDIV ");
-			CodeAddTempVariable(*temporaryVariableCount);
-			CodeAddTextToBody(" GF@%operand1 GF@%operand2");
-			CodeAddTextToBody("\nLABEL ");
-			CodeAddLabelName("$$operation", uniqueOperationId, "end");
-			if(item1->dataType == STACK_STRING)
-				SStackFreeString(item1->data.string);
-			item1->dataType = STACK_SYMBOL;
+			return_value |= CodeAddTextToBody("\nMOVE GF@%operand1 ");
+			return_value |= CodeAddSStackItem(item1);
+			return_value |= CodeAddTextToBody("\nMOVE GF@%operand2 ");
+			return_value |= CodeAddSStackItem(item2);
+			return_value |= CodeAddTextToBody("\nTYPE GF@%operand1type GF@%operand1");
+			return_value |= CodeAddTextToBody("\nTYPE GF@%operand2type GF@%operand2");
+			return_value |= CodeAddTextToBody("\nJUMPIFNEQ ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "conevert");
+			return_value |= CodeAddTextToBody(" GF@%operand1type string@int");
+			return_value |= CodeAddTextToBody("\nJUMPIFNEQ ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "conevert");
+			return_value |= CodeAddTextToBody(" GF@%operand2type string@int");
+			return_value |= CodeAddTextToBody("\nIDIV ");
+			return_value |= CodeAddTempVariable(*temporaryVariableCount);
+			return_value |= CodeAddTextToBody(" GF@%operand1 GF@%operand2");
+			return_value |= CodeAddTextToBody("\nJUMP ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "end");
+			return_value |= CodeAddTextToBody("\nLABEL ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "conevert");
+			return_value |= CodeAddTextToBody("\nCALL $$operand1ToFloat");
+			return_value |= CodeAddTextToBody("\nCALL $$operand2ToFloat");
+			return_value |= CodeAddTextToBody("\nCALL $$operandNumberCompatibility");
+			return_value |= CodeAddTextToBody("\nDIV ");
+			return_value |= CodeAddTempVariable(*temporaryVariableCount);
+			return_value |= CodeAddTextToBody(" GF@%operand1 GF@%operand2");
+			return_value |= CodeAddTextToBody("\nLABEL ");
+			return_value |= CodeAddLabelName("$$operation", uniqueOperationId, "end");
+			if(return_value != PARSE_OK)
+				return PARSE_INT_ERR;
 			break;
 		}
 		default:
@@ -570,6 +658,16 @@ static int SStackRuleDivision(SStack_t *Stack, int startingIndex, int *temporary
 	Stack->top = Stack->top - 2;
 	return PARSE_OK;
 }
+/**
+ * Function will find efficient way to reduce two items to lesser than,
+ * if they are constant it will not add anything to code (strings are exeption),
+ * Code is added only if one of them is variable.  It will return PARSE_OK if everything
+ * went ok, PARSE_INT_ERR if code addition went wrong, PARSE_TYPE_COMP if operands
+ * are of incompatible type.
+ * @param Stack stack to use
+ * @param startingIndex Index to start reduction from
+ * @param temporaryVariableCount Pointer to counter of temtorary variables
+*/
 static int SStackRuleIsLesserThan(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
@@ -598,15 +696,7 @@ static int SStackRuleIsLesserThan(SStack_t *Stack, int startingIndex, int *tempo
 			item1->data.boolValue = (doubleValue1 < doubleValue1);
 			break;
 		}
-		case C_STRING_STRING:
-		{
-			item1->dataType = STACK_BOOL;
-			item1->data.boolValue = (strcmp(item1->data.string, item2->data.string) < 0);
-			SStackFreeString(item1->data.string);
-			SStackFreeString(item2->data.string);
-			break;
-		}
-		case C_DOUBLE_VAR: case C_INT_VAR: case C_STRING_VAR: case C_VAR_VAR:
+		case C_STRING_STRING: case C_DOUBLE_VAR: case C_INT_VAR: case C_STRING_VAR: case C_VAR_VAR:
 		{
 			(*temporaryVariableCount)++;
 			int uniqueOperationId = CodeGetUniqueOperation();
@@ -628,6 +718,13 @@ static int SStackRuleIsLesserThan(SStack_t *Stack, int startingIndex, int *tempo
 			return_value |= CodeAddTextToBody("\nLT ");
 			return_value |= CodeAddTempVariable(*temporaryVariableCount);
 			return_value |= CodeAddTextToBody(" GF@%operand1 GF@%operand2");
+			if(return_value != PARSE_OK)
+				return PARSE_INT_ERR;
+
+			if(item1->dataType == STACK_STRING)
+				SStackFreeString(item1->data.string);
+			if(item2->dataType == STACK_STRING)
+				SStackFreeString(item2->data.string);
 			break;
 		}
 		default:
@@ -636,6 +733,16 @@ static int SStackRuleIsLesserThan(SStack_t *Stack, int startingIndex, int *tempo
 	Stack->top = Stack->top - 2;
 	return PARSE_OK;
 }
+/**
+ * Function will find efficient way to reduce two items to lesser or equal to,
+ * if they are constant it will not add anything to code (strings are exeption),
+ * Code is added only if one of them is variable. It will return PARSE_OK if everything
+ * went ok, PARSE_INT_ERR if code addition went wrong, PARSE_TYPE_COMP if operands
+ * are of incompatible type.
+ * @param Stack stack to use
+ * @param startingIndex Index to start reduction from
+ * @param temporaryVariableCount Pointer to counter of temtorary variables
+*/
 static int SStackRuleIsLesserEqual(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
@@ -664,15 +771,7 @@ static int SStackRuleIsLesserEqual(SStack_t *Stack, int startingIndex, int *temp
 			item1->data.boolValue = (doubleValue1 <= doubleValue1);
 			break;
 		}
-		case C_STRING_STRING:
-		{
-			item1->dataType = STACK_BOOL;
-			item1->data.boolValue = (strcmp(item1->data.string, item2->data.string) <= 0);
-			SStackFreeString(item1->data.string);
-			SStackFreeString(item2->data.string);
-			break;
-		}
-		case C_DOUBLE_VAR: case C_INT_VAR: case C_STRING_VAR: case C_VAR_VAR:
+		case C_STRING_STRING: case C_DOUBLE_VAR: case C_INT_VAR: case C_STRING_VAR: case C_VAR_VAR:
 		{
 			(*temporaryVariableCount)++;
 			int uniqueOperationId = CodeGetUniqueOperation();
@@ -698,6 +797,14 @@ static int SStackRuleIsLesserEqual(SStack_t *Stack, int startingIndex, int *temp
 			return_value |= CodeAddTempVariable(*temporaryVariableCount);
 			return_value |= CodeAddTextToBody(" ");
 			return_value |= CodeAddTempVariable(*temporaryVariableCount);
+
+			if(return_value != PARSE_OK)
+				return PARSE_INT_ERR;
+
+			if(item1->dataType == STACK_STRING)
+				SStackFreeString(item1->data.string);
+			if(item2->dataType == STACK_STRING)
+				SStackFreeString(item2->data.string);
 			break;
 		}
 		default:
@@ -706,6 +813,16 @@ static int SStackRuleIsLesserEqual(SStack_t *Stack, int startingIndex, int *temp
 	Stack->top = Stack->top - 2;
 	return PARSE_OK;
 }
+/**
+ * Function will find efficient way to reduce two items to greater than,
+ * if they are constant it will not add anything to code (strings are exeption),
+ * Code is added only if one of them is variable.  It will return PARSE_OK if everything
+ * went ok, PARSE_INT_ERR if code addition went wrong, PARSE_TYPE_COMP if operands
+ * are of incompatible type.
+ * @param Stack stack to use
+ * @param startingIndex Index to start reduction from
+ * @param temporaryVariableCount Pointer to counter of temtorary variables
+*/
 static int SStackRuleIsGreaterThan(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
@@ -734,15 +851,7 @@ static int SStackRuleIsGreaterThan(SStack_t *Stack, int startingIndex, int *temp
 			item1->data.boolValue = (doubleValue1 > doubleValue1);
 			break;
 		}
-		case C_STRING_STRING:
-		{
-			item1->dataType = STACK_BOOL;
-			item1->data.boolValue = (strcmp(item1->data.string, item2->data.string) > 0);
-			SStackFreeString(item1->data.string);
-			SStackFreeString(item2->data.string);
-			break;
-		}
-		case C_DOUBLE_VAR: case C_INT_VAR: case C_STRING_VAR: case C_VAR_VAR:
+		case C_STRING_STRING: case C_DOUBLE_VAR: case C_INT_VAR: case C_STRING_VAR: case C_VAR_VAR:
 		{
 			(*temporaryVariableCount)++;
 			int uniqueOperationId = CodeGetUniqueOperation();
@@ -764,6 +873,10 @@ static int SStackRuleIsGreaterThan(SStack_t *Stack, int startingIndex, int *temp
 			return_value |= CodeAddTextToBody("\nGT ");
 			return_value |= CodeAddTempVariable(*temporaryVariableCount);
 			return_value |= CodeAddTextToBody(" GF@%operand1 GF@%operand2");
+			if(item1->dataType == STACK_STRING)
+				SStackFreeString(item1->data.string);
+			if(item2->dataType == STACK_STRING)
+				SStackFreeString(item2->data.string);
 			break;
 		}
 		default:
@@ -772,6 +885,16 @@ static int SStackRuleIsGreaterThan(SStack_t *Stack, int startingIndex, int *temp
 	Stack->top = Stack->top - 2;
 	return PARSE_OK;
 }
+/**
+ * Function will find efficient way to reduce two items to greater or equal to,
+ * if they are constant it will not add anything to code (strings are exeption),
+ * Code is added only if one of them is variable. It will return PARSE_OK if everything
+ * went ok, PARSE_INT_ERR if code addition went wrong, PARSE_TYPE_COMP if operands
+ * are of incompatible type.
+ * @param Stack stack to use
+ * @param startingIndex Index to start reduction from
+ * @param temporaryVariableCount Pointer to counter of temtorary variables
+*/
 static int SStackRuleIsGreaterEqual(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
@@ -800,15 +923,7 @@ static int SStackRuleIsGreaterEqual(SStack_t *Stack, int startingIndex, int *tem
 			item1->data.boolValue = (doubleValue1 >= doubleValue1);
 			break;
 		}
-		case C_STRING_STRING:
-		{
-			item1->dataType = STACK_BOOL;
-			item1->data.boolValue = (strcmp(item1->data.string, item2->data.string) >= 0);
-			SStackFreeString(item1->data.string);
-			SStackFreeString(item2->data.string);
-			break;
-		}
-		case C_DOUBLE_VAR: case C_INT_VAR: case C_STRING_VAR: case C_VAR_VAR:
+		case C_STRING_STRING: case C_DOUBLE_VAR: case C_INT_VAR: case C_STRING_VAR: case C_VAR_VAR:
 		{
 			(*temporaryVariableCount)++;
 			int uniqueOperationId = CodeGetUniqueOperation();
@@ -834,6 +949,11 @@ static int SStackRuleIsGreaterEqual(SStack_t *Stack, int startingIndex, int *tem
 			return_value |= CodeAddTempVariable(*temporaryVariableCount);
 			return_value |= CodeAddTextToBody(" ");
 			return_value |= CodeAddTempVariable(*temporaryVariableCount);
+			
+			if(item1->dataType == STACK_STRING)
+				SStackFreeString(item1->data.string);
+			if(item2->dataType == STACK_STRING)
+				SStackFreeString(item2->data.string);
 			break;
 		}
 		default:
@@ -842,6 +962,16 @@ static int SStackRuleIsGreaterEqual(SStack_t *Stack, int startingIndex, int *tem
 	Stack->top = Stack->top - 2;
 	return PARSE_OK;
 }
+/**
+ * Function will find efficient way to reduce two items to equal to,
+ * if they are constant it will not add anything to code (strings are exeption),
+ * Code is added only if one of them is variable. It will return PARSE_OK if everything
+ * went ok, PARSE_INT_ERR if code addition went wrong, PARSE_TYPE_COMP if operands
+ * are of incompatible type.
+ * @param Stack stack to use
+ * @param startingIndex Index to start reduction from
+ * @param temporaryVariableCount Pointer to counter of temtorary variables
+*/
 static int SStackRuleIsEqual(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
@@ -870,14 +1000,6 @@ static int SStackRuleIsEqual(SStack_t *Stack, int startingIndex, int *temporaryV
 			item1->data.boolValue = (doubleValue1 == doubleValue1);
 			break;
 		}
-		case C_STRING_STRING:
-		{
-			item1->dataType = STACK_BOOL;
-			item1->data.boolValue = (strcmp(item1->data.string, item2->data.string) == 0);
-			SStackFreeString(item1->data.string);
-			SStackFreeString(item2->data.string);
-			break;
-		}
 		case C_NIL_NIL:
 		{
 			item1->dataType = STACK_BOOL;
@@ -890,7 +1012,7 @@ static int SStackRuleIsEqual(SStack_t *Stack, int startingIndex, int *temporaryV
 			item1->data.boolValue = false;
 			break;
 		}
-		case C_DOUBLE_VAR: case C_STRING_VAR: case C_NIL_VAR: case C_INT_VAR: case C_VAR_VAR:
+		case C_STRING_STRING: case C_DOUBLE_VAR: case C_STRING_VAR: case C_NIL_VAR: case C_INT_VAR: case C_VAR_VAR:
 		{
 			(*temporaryVariableCount)++;
 			int uniqueOperationId = CodeGetUniqueOperation();
@@ -927,6 +1049,16 @@ static int SStackRuleIsEqual(SStack_t *Stack, int startingIndex, int *temporaryV
 	Stack->top = Stack->top - 2;
 	return PARSE_OK;
 }
+/**
+ * Function will find efficient way to reduce two items to equal,
+ * if they are constant it will not add anything to code (strings are exeption),
+ * Code is added only if one of them is variable. It will return PARSE_OK if everything
+ * went ok, PARSE_INT_ERR if code addition went wrong, PARSE_TYPE_COMP if operands
+ * are of incompatible type.
+ * @param Stack stack to use
+ * @param startingIndex Index to start reduction from
+ * @param temporaryVariableCount Pointer to counter of temtorary variables
+*/
 static int SStackRuleIsNotEqual(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
 	SStackItem_t *item1 = &(Stack->stack[startingIndex]);
@@ -957,10 +1089,12 @@ static int SStackRuleIsNotEqual(SStack_t *Stack, int startingIndex, int *tempora
 		}
 		case C_STRING_STRING:
 		{
+			char *str1 = item1->data.string;
+			char *str2 = item1->data.string;
 			item1->dataType = STACK_BOOL;
 			item1->data.boolValue = (strcmp(item1->data.string, item2->data.string) != 0);
-			SStackFreeString(item1->data.string);
-			SStackFreeString(item2->data.string);
+			SStackFreeString(str1);
+			SStackFreeString(str2);
 			break;
 		}
 		case C_NIL_NIL:
@@ -1016,18 +1150,39 @@ static int SStackRuleIsNotEqual(SStack_t *Stack, int startingIndex, int *tempora
 	Stack->top = Stack->top - 2;
 	return PARSE_OK;
 }
+/**
+ * Function will reduce terminal term to nonterminal
+ * It will always return PARSE_OK
+ * @param Stack stack to use
+ * @param startingIndex Index to start reduction from
+*/
 static int SStackRuleTerm(SStack_t *Stack, int startingIndex)
 {
 	Stack->stack[startingIndex].isNonterminal = true;
 	return PARSE_OK;
 }
+/**
+ * Function will reduce brackets
+ * It will always return PARSE_OK
+ * @param Stack stack to use
+ * @param startingIndex Index to start reduction from
+*/
 static int SStackRuleBrackets(SStack_t *Stack, int startingIndex)
 {
 	Stack->stack[startingIndex] = Stack->stack[startingIndex+1];
 	Stack->top = Stack->top - 2;
 	return PARSE_OK;
 }
-int SStackUseRule(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
+/**
+ * Function will find correct rule to use for reduction depending on operation
+ * it will return PARSE_TYPE_COMP or PARSE_INT_ERR or PARSE_OTHER in case of
+ * error. If rule for reduction exists function will call one of the *Rule*
+ * function and it will inharite its return_value.
+ * @param Stack stack to use
+ * @param startingIndex Index to start reduction from
+ * @param temporaryVariableCount pointer to temporary variable counter
+*/
+static int SStackUseRule(SStack_t *Stack, int startingIndex, int *temporaryVariableCount)
 {
 	if(startingIndex+2 == Stack->top && 
 	   Stack->stack[startingIndex].isNonterminal && 
