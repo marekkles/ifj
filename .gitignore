@@ -86,3 +86,5 @@ conversion.src
 testprecedence.src
 nilnil.src
 test2.src
+factorial_iterative.src
+factorial_recursive.src

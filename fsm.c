@@ -915,7 +915,8 @@ int GetToken(DStr_t **DStr, Token_t *token)
                 else
                 {
                     DStrClear(*DStr);
-                    state = S_INITIAL;
+                    state = S_EOL;
+                    stop = 1;
                 }
                 break;
             }
