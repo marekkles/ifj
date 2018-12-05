@@ -1,6 +1,5 @@
 # Program 2: Vypocet faktorialu (rekurzivne)
 def factorial (n)
-    x = c
     if n < 2 then
         result = 1
     else
@@ -20,3 +19,5 @@ else
     vysl = factorial a
     print("\nVysledek je:", vysl, "\n")
 end
+
+print()

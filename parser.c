@@ -156,13 +156,13 @@ static int PrintTerm(DStr_t **dstr, Token_t *token)
     int return_value = PARSE_OK;
     DebugFPuts("      In: <PrintTerm> <= ", stderr);
     DebugFPrintToken(stderr, token, *dstr);
-    if((return_value = CodeAddInstruction(WRITE)) != PARSE_OK)
-        return return_value;
     if((return_value = CodeAddTextToBody(" ")) != PARSE_OK)
         return return_value;
 
     if(TokenExpect(token, T_IDENTIFIER) == PARSE_OK)
     {
+        if ((return_value = CodeAddInstruction(WRITE)) != PARSE_OK)
+            return return_value;
         SymTableItem_t *foundItem = SymTableFindItem(symtable, DStrStr(*dstr));
         if(foundItem == NULL)
             return PARSE_UNDEF_VAR;
@@ -172,24 +172,32 @@ static int PrintTerm(DStr_t **dstr, Token_t *token)
     }
     else if(TokenExpect(token, T_INTEGER) == PARSE_OK)
     {
+        if ((return_value = CodeAddInstruction(WRITE)) != PARSE_OK)
+            return return_value;
         if((return_value = CodeAddInt(token->intValue)) != PARSE_OK)
             return return_value;
         return PARSE_OK;
     }
     else if(TokenExpect(token, T_DOUBLE) == PARSE_OK)
     {
+        if ((return_value = CodeAddInstruction(WRITE)) != PARSE_OK)
+            return return_value;
         if((return_value = CodeAddDouble(token->doubleValue)) != PARSE_OK)
             return return_value;
         return PARSE_OK;
     }
     else if(TokenExpect(token, T_STRING) == PARSE_OK)
     {
+        if ((return_value = CodeAddInstruction(WRITE)) != PARSE_OK)
+            return return_value;
         if((return_value = CodeAddString(DStrStr(*dstr))) != PARSE_OK)
             return return_value;
         return PARSE_OK;
     }
     else if(TokenExpectKeyword(token, TK_NIL) == PARSE_OK)
     {
+        if ((return_value = CodeAddInstruction(WRITE)) != PARSE_OK)
+            return return_value;
         if((return_value = CodeAddNil()) != PARSE_OK)
             return return_value;
         return PARSE_OK;
