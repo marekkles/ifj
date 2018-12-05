@@ -1,11 +1,16 @@
 CC=gcc
+CFLAGS=
 TARGETS=main
+
 all: ${TARGETS}
+debug: CFLAGS+=-DDEBUG -ggdb
+debug:${TARGETS}
+
 
 main: main.o debug.o dstr.o parser.o fsm.o symtable.o symbolstack.o codegen.o error.o
 
 %.o: %.c
-	${CC} -c $^ -o $@
+	${CC} ${CFLAGS} -c $^ -o $@
 
 clean:
 	rm *.o

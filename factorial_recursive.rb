@@ -1,5 +1,6 @@
 # Program 2: Vypocet faktorialu (rekurzivne)
 def factorial (n)
+    x = c
     if n < 2 then
         result = 1
     else
@@ -9,9 +10,10 @@ def factorial (n)
     end # if
     result
 end # function factorial
+
 # Hlavni telo programu
 print "Zadejte cislo pro vypocet faktorialu: "
-a = inputi
+a = inputi()
 if a < 0 then
     print "\nFaktorial nelze spocitat\n"
 else

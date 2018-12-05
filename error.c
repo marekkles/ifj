@@ -54,6 +54,7 @@ void ErrorPrintErrorCode(ErrorCode_t errCode, const char *msg)
         "Semantics error: undifined/redefinition of variable/function ",
         "Semantics error: incompatible data types ",
         "Semantics error: bad number of arguments in function call ",
+        "Semantics error: other ",
         "Run error division by zero ",
         "Internal error "
     };

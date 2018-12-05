@@ -158,8 +158,17 @@ void DebugFPrintSymTable(FILE *output, SymTable_t *symtable)
             }
             else
             {
-                fputs(" |        |\n", output);
-                fputs(" |        +-> ", output);
+                if(i != symtable->size - 1)
+                {
+                    fputs(" |        |\n", output);
+                    fputs(" |        +-> ", output);
+                }
+                else
+                {
+                    fputs("          |\n", output);
+                    fputs("          +-> ", output);
+                }
+                
             }
             DebugFPrintSymTableItem(output, currentItem);
             fputc('\n', output);

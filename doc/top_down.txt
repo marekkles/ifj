@@ -1,37 +1,42 @@
-<Program> -> def id (<ParameterList>) EOL <Command> end EOL <Program>
-<Program> -> def id (<ParameterList>) EOL <Command> end EOF
+<Program> -> def id (<ParameterList>) EOL <Command> end <ProgramEnd>
 <Program> -> EOL <Program>
 <Program> -> EOF
 <Program> -> <Command> <Program>
 
-<ParameterList> -> id
-<ParameterList> -> id <ParameterOther>
-<ParameterList> -> ε
+<ProgramEnd> -> EOL <Program>
+<ProgramEnd> -> EOF
 
 <ParameterOther> -> , id <ParameterOther>
 <ParameterOther> -> ε
-
-<TermList> -> <Term>
-<TermList> -> <Term> <TermOther>
-<TermList> -> ε
+<ParameterList> -> id <ParameterOther>
+<ParameterList> -> ε
 
 <Term> -> id
 <Term> -> int
 <Term> -> double
 <Term> -> string
-
 <TermOther> -> , <Term> <TermOther>
 <TermOther> -> ε
+<TermList> -> <Term> <TermOther>
+<TermList> -> ε
+<TermListBrackets> <TermList> )
 
 <PrintTerm> -> id
 <PrintTerm> -> int
 <PrintTerm> -> double
 <PrintTerm> -> string
 
+<PrintParameters> -> ( <PrintTermListBracket>
+<PrintParameters> -> <PrintTermList>
 <PrintTermOther> -> , <PrintTerm> <PrintTermOther>
 <PrintTermOther> -> ε
-
 <PrintTermList> -> <PrintTerm> <PrintTermOther>
+<PrintTermListBracket> -> <PrintTermList> )
+
+<ParseInternalInlineFunction> -> print <PrintParameters>
+<ParseInternalInlineFunction> -> inputi <FuncionCallParametersEmpty>
+<ParseInternalInlineFunction> -> inputf <FuncionCallParametersEmpty>
+<ParseInternalInlineFunction> -> inputs <FuncionCallParametersEmpty>
 
 <CommandEnd> -> EOL <Command>
 <CommandEnd> -> EOF
@@ -40,12 +45,24 @@
 <Command> -> while <Expression> do EOL <Command> end <CommandEnd>
 <Command> -> EOL <Command>
 <Command> -> EOF
-<Command> -> print <PrintTermList> <CommandEnd>
-<Command> -> print (<PrintTermList>) <CommandEnd>
-<Command> -> id ( <TermList> ) <CommandEnd>
-<Command> -> id <TermList> <CommandEnd>
-<Command> -> id = id (<TermList>) <CommandEnd>
-<Command> -> id = id <TermList> <CommandEnd>
-<Command> -> id = <Expression> <CommandEnd>
+
 <Command> -> <Expression> <CommandEnd>
 <Command> -> ε
+
+<Command> -> id <PossibleFunctionCall> <CommandEnd>
+<Command> -> <ParseInternalInlineFunction> <CommandEnd>
+<Command> -> <Expression>  <CommandEnd>
+
+<PossibleFunctionCall> -> = <Assignment>
+<PossibleFunctionCall> -> ( <TermListBrackets>
+<PossibleFunctionCall> -> <TermList>
+
+<FunctioaCallParameters> -> ( <TermListBrackets>
+<FunctioaCallParameters> -> <TermList>
+
+<FuncionCallParametersEmpty> -> ( )
+<FuncionCallParametersEmpty> -> ε
+
+<Assignment> -> <ParseInternalInlineFunction>
+<Assignment> -> id <FunctioaCallParameters>
+<Command> -> <Expression>
