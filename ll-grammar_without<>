@@ -1,0 +1,64 @@
+Program -> def id ( ParameterList ) eol Command end ProgramEnd
+Program -> eol Program
+Program -> eof
+Program -> Command Program
+
+ProgramEnd -> eol Program
+ProgramEnd -> eof
+
+ParameterOther -> , id ParameterOther
+ParameterOther -> ε
+ParameterList -> id ParameterOther
+ParameterList -> ε
+
+Term -> id
+Term -> int
+Term -> double
+Term -> string
+TermOther -> , Term TermOther
+TermOther -> ε
+TermList -> Term TermOther
+TermList -> ε
+TermListBrackets -> TermList )
+FunctionCallParameters -> ( TermListBrackets
+FunctionCallParameters -> TermList
+FuncionCallParametersEmpty -> ( )
+FuncionCallParametersEmpty -> ε
+
+PrintTerm -> id
+PrintTerm -> int
+PrintTerm -> double
+PrintTerm -> string
+
+PrintTermOther -> , PrintTerm PrintTermOther
+PrintTermOther -> ε
+PrintTermList -> PrintTerm PrintTermOther
+PrintTermListBracket -> PrintTermList )
+PrintParameters -> ( PrintTermListBracket
+PrintParameters -> PrintTermList
+
+
+ParseInternalInlineFunction -> print PrintParameters
+ParseInternalInlineFunction -> inputi FuncionCallParametersEmpty
+ParseInternalInlineFunction -> inputf FuncionCallParametersEmpty
+ParseInternalInlineFunction -> inputs FuncionCallParametersEmpty
+
+Assignment -> ParseInternalInlineFunction
+Assignment -> id FunctioaCallParameters
+Assignment -> Expression
+
+PossibleFunctionCall -> = Assignment
+PossibleFunctionCall -> ( TermListBrackets
+PossibleFunctionCall -> TermList
+
+CommandEnd -> eol Command
+CommandEnd -> eof
+
+Command -> if Expression then eol Command else Command end CommandEnd
+Command -> while Expression do eol Command end CommandEnd
+Command -> eol Command
+Command -> eof
+Command -> ParseInternalInlineFunction CommandEnd
+Command -> id PossibleFunctionCall CommandEnd
+Command -> Expression  CommandEnd
+Command -> ε
