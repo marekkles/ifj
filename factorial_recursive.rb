@@ -16,8 +16,6 @@ a = inputi()
 if a < 0 then
     print "\nFaktorial nelze spocitat\n"
 else
-    vysl = factorial a
+    vysl = factorial (a)
     print("\nVysledek je:", vysl, "\n")
 end
-
-print()
