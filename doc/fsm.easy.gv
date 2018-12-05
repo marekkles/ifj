@@ -1,0 +1,156 @@
+digraph finite_state_machine {
+	rankdir=LR;
+	size="8,5"
+	//node [style=filled fillcolor="#00ff005f"];
+	//S_INITIAL;
+	//3  2 5 6 19 17 24 26 28 S_EXCLAMATION_MARK;
+	//20 12 14 7 8 9 ;
+	//13 16 15 10 11 S_STR_HEX;
+	//S_STR_HEX1;
+	node [style=filled fillcolor="#ffffff"];
+	node [shape = doublecircle]; 
+	1 2 3 4 5 6 10 8 11 13 16 23 24 26 28 29 31 32 33 34 35 52 27 25 36 37 S_EOF;
+	node [shape = circle];
+
+	0 -> 0 [label = "\\s \\t"];
+	0 -> 39 [label = "EOF"];
+	0 -> 1 [label = "\\n"];
+	0 -> 40 [label = "=  1 "];  // TO DO LABEL
+	0 -> 3 [ label = "[a-z]"];
+	0 -> 2 [ label = "_"];
+	0 -> 5 [ label = "[1-9]"];
+	0 -> 6 [ label = "0"];
+	0 -> 19 [label = "\""];
+	0 -> 17 [label = "#"];
+	0 -> 24 [label = "<"];
+	0 -> 26 [label = ">"];
+	0 -> 28 [label = "="];
+	0 -> 30 [label = "!"];
+	0 -> 32 [label = "*"];
+    0 -> 33 [label = "/"];
+    0 -> 34 [label = "+"];
+    0 -> 35 [label = "-"];
+	0 -> 36 [label = "("];
+	0 -> 37 [label = ")"];
+	0 -> 38 [label = ","];
+	0 -> 52 [label = "other" ];
+
+
+	1 -> 1 [label = "\\t \\s \\n"];
+
+	3 -> 3 [label = "[a-z]"];
+	3 -> 2 [label = "[A-Z]"];
+	3 -> 4 [label = "(!, ?)"];
+
+	2 -> 2 [label = "[a-z] [A-Z]"];
+	2 -> 4 [ label = "(!, ?)"];
+
+	5 -> 5 [ label = "[0-9]"];
+	5 -> 12 [ label = "."];
+	5 -> 14 [ label = "(e, E)"];
+
+	6 -> 7 [label = "b"];
+    6 -> 8 [label = "[0-9]"]; 
+    6 -> 9 [label = "x"];
+	6 -> 52 [label = "[8-9]"];
+	6 -> 12 [ label = "."];
+
+	
+	19 -> 19 [label = "not \\n not \""];
+    19 -> 23 [label = "\""];
+	19 -> 20 [label = "\\"];
+	19 -> 52 [label = "\\n"];
+    
+	17 -> 17 [ label = "not \\n"];
+
+	24 -> 25 [label = "="];
+
+	26 -> 27 [label = "="];
+
+	28 -> 29 [label = "="];
+
+	30 -> 31 [label = "="];
+
+	//DEPTH II.
+
+	12 -> 13 [ label = "[0-9]"]; 
+	12 -> 52 [ label = "other"]; 
+	
+	14 -> 16 [label = "[0-9]"];
+	14 -> 15 [label = "(+, -)"];
+	14 -> 52 [label = "other"];
+	
+	7 -> 10 [label = "[0-1]"];
+	7 -> 52 [label = "other"];
+
+	8 -> 8 [label = "[0-7]"];
+
+	9 -> 11 [label = "([0-9], [A-F], [a-f])"];
+	9 -> 52 [label = "other"];
+	
+	20 -> 19 [label = "(\", n, s, \\)"];
+    20 -> 21 [label = "x"];
+	20 -> 52 [label = "other"];
+    
+	//DEPTH III.
+	13 -> 13 [label = "[0-9]"];
+	13 -> 14 [ label = "(e, E)"]; 
+	
+	16 -> 16 [label = "[0-9]"];
+
+	15 -> 16 [label = "[0-9]"];
+	15 -> 52 [label = "other"];
+
+	10 -> 10 [label = "[0-1]"];
+
+	11 -> 11 [label = "([0-9], [A-F], [a-f])"];
+
+	21 -> 22 [label = "([0-9], [A-F], [a-f])"]; 
+	21 -> 52 [label = "other"];
+    
+
+	//DEPTH IV.
+	22 -> 19 [label = "([0-9], [A-F], [a-f])"];
+	22 -> 52 [label = "other"];
+    
+	//BLOCK COMMENTS
+
+	40 -> 41 [ label = "b"];
+	40 -> 52 [label = "other"];
+
+	41 -> 42 [ label = "e"];
+	41 -> 52 [ label = "other"];
+
+	42 -> 43 [label = "g"];
+	42 -> 52 [label = "other"];
+
+	43 -> 44 [label = "i"];
+	43 -> 52 [label = "other"];
+
+	44 -> 45 [label = "n"];
+	44 -> 52 [label = "other"];
+
+	45 -> 47 [label = "\n"];
+	45 -> 52 [label = "other"];
+
+
+	47 -> 48 [label = "="];
+	47 -> 47 [label = "\n"];
+	47 -> 52 [label = "EOF"];
+
+	48 -> 49 [label = "e"];
+	48 -> 52 [label = "EOF"];
+	48 -> 46 [label = "other"];
+
+	49 -> 50 [label = "n"];
+	49 -> 52 [label = "EOF"];
+	49 -> 46 [label = "other"];
+
+	50 -> 51 [label = "d"];
+	50 -> 52 [label = "EOF"];
+	50 -> 46 [label = "other"];
+
+	51 -> 51 [label = "\n"];
+	51 -> 39 [label = "EOF"]
+	51 -> 0 [label = "other"];
+}
